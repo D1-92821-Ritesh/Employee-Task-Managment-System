@@ -1,0 +1,24 @@
+.homeContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+  font-family: Arial, sans-serif;
+}
+
+.homeContent {
+  text-align: center;
+  color: #f0f0f0;
+}
+
+.homeContent h1 {
+  font-size: 48px;
+  margin-bottom: 20px;
+  color: #cbd5e1;
+}
+
+.homeContent p {
+  font-size: 18px;
+  color: #94a3b8;
+}
