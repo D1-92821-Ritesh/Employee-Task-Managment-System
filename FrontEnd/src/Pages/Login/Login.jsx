@@ -5,10 +5,12 @@ import "./Login.css";
 import PrimaryBtn from "../../components/Button/PrimaryBtn";
 
 // dummy data
-const USER = {
-  username: "user",
-  password: "password",
-};
+const USER = [
+  {username: "user",password: "password",role: "ADMIN"},
+  {username: "admin",password:"admin", role:"ADMIN"},
+  {username:"manager",password:"manager",role:"MANAGER"},
+  {username:"employee",password:"employee",role:"EMPLOYEE"},
+];
 
 export function Login() {
   const navigate = useNavigate();
@@ -32,14 +34,20 @@ export function Login() {
     })
 
     */
-    if (username.trim() === USER.username && password === USER.password) {
+   const user = USER.find((u)=> u.username === username.trim() && u.password === password);
+    if (user) {
       toast.success("Login successful!");
+      localStorage.setItem("user", JSON.stringify(user));
+
+      if (user.role === "ADMIN") navigate("/admin");
+      else if (user.role === "MANAGER") navigate("/manager");
+      else if(user.role === "EMPLOYEE") navigate("/employee");
 
       setUsername("");
       setPassword("");
 
       //navigating to home
-      navigate("/home");
+      // navigate("/home");
     } else {
       toast.error("Invalid username or password");
     }
