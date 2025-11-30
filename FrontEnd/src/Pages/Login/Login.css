@@ -1,6 +1,6 @@
-
 .container {
   display: flex;
+  width: 100%;
   justify-content: center;
   align-items: center;
   background: radial-gradient(ellipse at 15% 25%, rgba(139, 92, 246, 0.25) 0%, transparent 50%),
