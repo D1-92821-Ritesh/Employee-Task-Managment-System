@@ -3,14 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import "./Login.css";
 import PrimaryBtn from "../../components/Button/PrimaryBtn";
+import { USER } from "../../data/mockData";
 
-// dummy data
-const USER = [
-  {username: "user",password: "password",role: "ADMIN"},
-  {username: "admin",password:"admin", role:"ADMIN"},
-  {username:"manager",password:"manager",role:"MANAGER"},
-  {username:"employee",password:"employee",role:"EMPLOYEE"},
-];
 
 export function Login() {
   const navigate = useNavigate();
@@ -34,7 +28,7 @@ export function Login() {
     })
 
     */
-   const user = USER.find((u)=> u.username === username.trim() && u.password === password);
+   const user = USER.find((u)=> u.username === username.trim() && u.password_hash === password);
     if (user) {
       toast.success("Login successful!");
       localStorage.setItem("user", JSON.stringify(user));
@@ -55,7 +49,7 @@ export function Login() {
   };
 
   return (
-    <div className="container">
+      <div className="container">
       <div className="bubbleBlue"></div>
       <div className="bubbleOrange"></div>
 
