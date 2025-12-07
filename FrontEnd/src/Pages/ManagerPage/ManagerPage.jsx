@@ -3,6 +3,7 @@ import { Box } from "@mui/material";
 import Body from "../../components/Body/Body";
 import Sidebar from "../../components/SideBar/SideBar";
 import TaskList from "../../components/Tasks/TaskList";
+import EmployeesSection from "../../components/Employees/EmployeesSection";
 
 export default function ManagerPage() {
   const [selected, setSelected] = useState("dashboard");
@@ -20,10 +21,7 @@ export default function ManagerPage() {
 
       case "employees":
         return (
-          <>
-            <h2>Employees</h2>
-            <p>Employee list and management UI will show here.</p>
-          </>
+          <EmployeesSection />
         );
 
       default:
