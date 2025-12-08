@@ -3,13 +3,6 @@ import {
   Box,
   Typography,
   Button,
-  Card,
-  CardContent,
-  Table,
-  TableHead,
-  TableRow,
-  TableCell,
-  TableBody,
   Chip,
   IconButton,
   Stack,
@@ -68,7 +61,7 @@ function EmployeeFormDialog({ open, onClose, onSave, employee, managers }) {
   };
 
   const handleSubmit = () => {
-    if (!form.username.trim()) return; // basic validation
+    if (!form.username.trim()) return;
     onSave(form);
   };
 
@@ -80,35 +73,72 @@ function EmployeeFormDialog({ open, onClose, onSave, employee, managers }) {
       maxWidth="sm"
       PaperProps={{
         sx: {
-          backgroundColor: "#020617",
+          background: "linear-gradient(145deg, #1e293b 0%, #0f172a 100%)",
+          borderRadius: "24px",
+          border: "1px solid rgba(148,163,184,0.25)",
+          boxShadow: "0 8px 32px rgba(0,0,0,0.45)",
           color: "white",
-          borderRadius: "20px",
-          border: "1px solid rgba(148,163,184,0.4)",
+          p: 1,
         },
       }}
     >
-      <DialogTitle sx={{ pb: 1 }}>
+      <DialogTitle
+        sx={{
+          fontSize: "22px",
+          fontWeight: 700,
+          color: "#f1f5f9",
+          pb: 1,
+        }}
+      >
         {isEditMode ? "Edit Employee" : "Add Employee"}
       </DialogTitle>
 
-      <DialogContent sx={{ pt: 1, display: "flex", flexDirection: "column", gap: 2 }}>
+      <DialogContent
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          gap: 3,
+          mt: 1,
+        }}
+      >
+        {/* Input fields styled like the task form */}
         <TextField
           label="Username"
           value={form.username}
           onChange={handleChange("username")}
           fullWidth
           variant="outlined"
-          InputLabelProps={{ sx: { color: "#9ca3af" } }}
-          InputProps={{ sx: { color: "white" } }}
+          InputLabelProps={{
+            sx: { color: "#94a3b8" },
+          }}
+          InputProps={{
+            sx: {
+              color: "white",
+              background: "rgba(255,255,255,0.03)",
+              borderRadius: "12px",
+              "& fieldset": {
+                borderColor: "rgba(148,163,184,0.25)",
+              },
+              "&:hover fieldset": {
+                borderColor: "rgba(148,163,184,0.45)",
+              },
+            },
+          }}
         />
 
         <FormControl fullWidth>
-          <InputLabel sx={{ color: "#9ca3af" }}>Role</InputLabel>
+          <InputLabel sx={{ color: "#94a3b8" }}>Role</InputLabel>
           <Select
             value={form.role}
-            label="Role"
             onChange={handleChange("role")}
-            sx={{ color: "white" }}
+            label="Role"
+            sx={{
+              color: "white",
+              background: "rgba(255,255,255,0.03)",
+              borderRadius: "12px",
+              "& fieldset": { borderColor: "rgba(148,163,184,0.25)" },
+              "&:hover fieldset": { borderColor: "rgba(148,163,184,0.45)" },
+            }}
           >
             <MenuItem value="ADMIN">ADMIN</MenuItem>
             <MenuItem value="MANAGER">MANAGER</MenuItem>
@@ -122,17 +152,31 @@ function EmployeeFormDialog({ open, onClose, onSave, employee, managers }) {
           onChange={handleChange("department")}
           fullWidth
           variant="outlined"
-          InputLabelProps={{ sx: { color: "#9ca3af" } }}
-          InputProps={{ sx: { color: "white" } }}
+          InputLabelProps={{ sx: { color: "#94a3b8" } }}
+          InputProps={{
+            sx: {
+              color: "white",
+              background: "rgba(255,255,255,0.03)",
+              borderRadius: "12px",
+              "& fieldset": { borderColor: "rgba(148,163,184,0.25)" },
+              "&:hover fieldset": { borderColor: "rgba(148,163,184,0.45)" },
+            },
+          }}
         />
 
         <FormControl fullWidth>
-          <InputLabel sx={{ color: "#9ca3af" }}>Status</InputLabel>
+          <InputLabel sx={{ color: "#94a3b8" }}>Status</InputLabel>
           <Select
             value={form.status}
-            label="Status"
             onChange={handleChange("status")}
-            sx={{ color: "white" }}
+            label="Status"
+            sx={{
+              color: "white",
+              background: "rgba(255,255,255,0.03)",
+              borderRadius: "12px",
+              "& fieldset": { borderColor: "rgba(148,163,184,0.25)" },
+              "&:hover fieldset": { borderColor: "rgba(148,163,184,0.45)" },
+            }}
           >
             <MenuItem value="ACTIVE">ACTIVE</MenuItem>
             <MenuItem value="INACTIVE">INACTIVE</MenuItem>
@@ -140,12 +184,18 @@ function EmployeeFormDialog({ open, onClose, onSave, employee, managers }) {
         </FormControl>
 
         <FormControl fullWidth>
-          <InputLabel sx={{ color: "#9ca3af" }}>Manager</InputLabel>
+          <InputLabel sx={{ color: "#94a3b8" }}>Manager</InputLabel>
           <Select
             value={form.manager_id ?? ""}
-            label="Manager"
             onChange={handleChange("manager_id")}
-            sx={{ color: "white" }}
+            label="Manager"
+            sx={{
+              color: "white",
+              background: "rgba(255,255,255,0.03)",
+              borderRadius: "12px",
+              "& fieldset": { borderColor: "rgba(148,163,184,0.25)" },
+              "&:hover fieldset": { borderColor: "rgba(148,163,184,0.45)" },
+            }}
           >
             <MenuItem value="">None</MenuItem>
             {managers.map((m) => (
@@ -157,14 +207,41 @@ function EmployeeFormDialog({ open, onClose, onSave, employee, managers }) {
         </FormControl>
       </DialogContent>
 
-      <DialogActions sx={{ px: 3, pb: 2 }}>
-        <Button onClick={onClose} sx={{ textTransform: "none" }}>
+      <DialogActions sx={{ px: 3, pb: 3 }}>
+        <Button
+          onClick={onClose}
+          sx={{
+            textTransform: "none",
+            color: "#cbd5e1",
+            fontWeight: 600,
+            borderRadius: "12px",
+            px: 2.5,
+            py: 1,
+            background: "rgba(255,255,255,0.05)",
+            "&:hover": {
+              background: "rgba(255,255,255,0.1)",
+            },
+          }}
+        >
           Cancel
         </Button>
+
         <Button
           variant="contained"
           onClick={handleSubmit}
-          sx={{ textTransform: "none", fontWeight: 600 }}
+          sx={{
+            textTransform: "none",
+            fontWeight: 700,
+            px: 3,
+            py: 1,
+            borderRadius: "12px",
+            background: "linear-gradient(135deg, #6366f1, #4f46e5)",
+            boxShadow: "0 6px 20px rgba(99,102,241,0.35)",
+            "&:hover": {
+              transform: "translateY(-2px)",
+              boxShadow: "0 12px 32px rgba(99,102,241,0.55)",
+            },
+          }}
         >
           {isEditMode ? "Save Changes" : "Create"}
         </Button>
@@ -327,13 +404,23 @@ export default function EmployeesSection() {
 
         {isAdmin && (
           <Button
-            variant="contained"
-            startIcon={<FiPlus />}
             onClick={handleOpenAdd}
+            startIcon={<FiPlus />}
             sx={{
               borderRadius: "999px",
               textTransform: "none",
               fontWeight: 600,
+              px: 2.5,
+              py: 1,
+              color: "#e6e9ff",
+              background: "linear-gradient(145deg, rgba(129,140,248,0.12), rgba(99,102,241,0.08))",
+              border: "1px solid rgba(129,140,248,0.22)",
+              backdropFilter: "blur(6px)",
+              boxShadow: "0 6px 18px rgba(99,102,241,0.08)",
+              '&:hover': {
+                background: "linear-gradient(145deg, rgba(129,140,248,0.18), rgba(99,102,241,0.12))",
+                transform: 'translateY(-2px)',
+              }
             }}
           >
             Add Employee
@@ -341,112 +428,201 @@ export default function EmployeesSection() {
         )}
       </Box>
 
-      {/* TABLE */}
-      <Card sx={{ ...GLASS_STYLE, flex: 1, minHeight: 0 }}>
-        <CardContent
+      {/* EMPLOYEE TABLE WITH CARD ROWS */}
+      <Box
+        sx={{
+          flex: 1,
+          minHeight: 0,
+          display: "flex",
+          flexDirection: "column",
+          background: "linear-gradient(145deg, #1e293b 0%, #0f172a 100%)",
+          borderRadius: "0px",
+          border: "1px solid rgba(148,163,184,0.25)",
+          overflow: "hidden",
+        }}
+      >
+        {/* TABLE HEADER */}
+        <Box
           sx={{
-            height: "100%",
-            display: "flex",
-            flexDirection: "column",
-            overflow: "hidden",
+            display: "grid",
+            gridTemplateColumns: "1fr 140px 140px 120px 120px",
+            gap: 2,
+            padding: "16px 20px",
+            background: "rgba(30,41,59,0.8)",
+            borderBottom: "2px solid rgba(148,163,184,0.2)",
+            flexShrink: 0,
+            alignItems: "center",
           }}
         >
-          <Box
-            sx={{
-              flex: 1,
-              minHeight: 0,
-              overflowY: "auto",
-              "&::-webkit-scrollbar": { width: 6 },
-              "&::-webkit-scrollbar-thumb": {
-                background: "rgba(148,163,184,0.6)",
-                borderRadius: 999,
-              },
-            }}
-          >
-            <Table stickyHeader size="small">
-              <TableHead>
-                <TableRow>
-                  <TableCell sx={{ color: "#cbd5f5" }}>Employee</TableCell>
-                  <TableCell sx={{ color: "#cbd5f5" }}>Role</TableCell>
-                  <TableCell sx={{ color: "#cbd5f5" }}>Department</TableCell>
-                  <TableCell sx={{ color: "#cbd5f5" }}>Status</TableCell>
-                  <TableCell align="right" sx={{ color: "#cbd5f5" }}>
-                    Actions
-                  </TableCell>
-                </TableRow>
-              </TableHead>
+          <Typography variant="subtitle2" sx={{ color: "#cbd5f5", fontWeight: 700, fontSize: "13px", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+            Employee
+          </Typography>
+          <Typography variant="subtitle2" sx={{ color: "#cbd5f5", fontWeight: 700, fontSize: "13px", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+            Role
+          </Typography>
+          <Typography variant="subtitle2" sx={{ color: "#cbd5f5", fontWeight: 700, fontSize: "13px", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+            Department
+          </Typography>
+          <Typography variant="subtitle2" sx={{ color: "#cbd5f5", fontWeight: 700, fontSize: "13px", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+            Status
+          </Typography>
+          <Typography variant="subtitle2" sx={{ color: "#cbd5f5", fontWeight: 700, fontSize: "13px", textTransform: "uppercase", letterSpacing: "0.5px", textAlign: "right" }}>
+            Actions
+          </Typography>
+        </Box>
 
-              <TableBody>
-                {sortedEmployees.map((emp) => (
-                  <TableRow key={emp.user_id} hover>
-                    <TableCell>
-                      <Typography fontWeight={600}>{emp.username}</Typography>
-                      <Typography variant="caption" sx={{ color: "#9ca3af" }}>
-                        ID: {emp.user_id}
-                      </Typography>
-                    </TableCell>
+        {/* SCROLLABLE ROWS */}
+        <Box
+          sx={{
+            flex: 1,
+            minHeight: 0,
+            overflowY: "auto",
+            display: "flex",
+            flexDirection: "column",
+            gap: 1,
+            padding: "12px 12px",
+            "&::-webkit-scrollbar": { width: 8 },
+            "&::-webkit-scrollbar-track": { background: "transparent" },
+            "&::-webkit-scrollbar-thumb": {
+              background: "rgba(148,163,184,0.4)",
+              borderRadius: 999,
+              "&:hover": { background: "rgba(148,163,184,0.6)" },
+            },
+          }}
+        >
+          {sortedEmployees.map((emp) => (
+            <Box
+              key={emp.user_id}
+              sx={{
+                display: "grid",
+                gridTemplateColumns: "1fr 140px 140px 120px 120px",
+                gap: 2,
+                padding: "14px 20px",
+                alignItems: "center",
+                background: "linear-gradient(135deg, rgba(51,65,85,0.5) 0%, rgba(30,41,59,0.4) 100%)",
+                border: "1.5px solid rgba(148,163,184,0.3)",
+                borderRadius: "0px",
+                backdropFilter: "blur(16px)",
+                boxShadow: "0 8px 32px rgba(0,0,0,0.25), inset 0 1px 1px rgba(255,255,255,0.12)",
+                transition: "all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)",
+                flexShrink: 0,
+                "&:hover": {
+                  transform: "translateY(-4px)",
+                  background: "linear-gradient(135deg, rgba(79,102,131,0.6) 0%, rgba(51,65,85,0.5) 100%)",
+                  border: "1.5px solid rgba(148,163,184,0.55)",
+                  boxShadow: "0 16px 40px rgba(99,102,241,0.2), inset 0 1px 1px rgba(255,255,255,0.2)",
+                },
+              }}
+            >
+              {/* Employee Name & ID */}
+              <Box>
+                <Typography variant="body2" fontWeight={700} sx={{ color: "#f1f5f9", fontSize: "15px" }}>
+                  {emp.username}
+                </Typography>
+                <Typography variant="caption" sx={{ color: "#94a3b8", fontSize: "12px" }}>
+                  ID: {emp.user_id}
+                </Typography>
+              </Box>
 
-                    <TableCell>
-                      <Chip
-                        label={emp.role}
-                        size="small"
-                        sx={{
-                          bgcolor:
-                            emp.role === "ADMIN"
-                              ? "rgba(239,68,68,0.2)"
-                              : emp.role === "MANAGER"
-                              ? "rgba(59,130,246,0.2)"
-                              : "rgba(34,197,94,0.2)",
-                          color: "#e5e7eb",
-                          fontWeight: 600,
-                        }}
-                      />
-                    </TableCell>
+              {/* Role */}
+              <Box>
+                <Chip
+                  label={emp.role}
+                  size="small"
+                  sx={{
+                    bgcolor:
+                      emp.role === "ADMIN"
+                        ? "rgba(239,68,68,0.2)"
+                        : emp.role === "MANAGER"
+                        ? "rgba(59,130,246,0.2)"
+                        : "rgba(34,197,94,0.2)",
+                    color:
+                      emp.role === "ADMIN"
+                        ? "#fca5a5"
+                        : emp.role === "MANAGER"
+                        ? "#93c5fd"
+                        : "#86efac",
+                    fontWeight: 700,
+                    border: "1px solid rgba(255,255,255,0.2)",
+                    backdropFilter: "blur(8px)",
+                    fontSize: "12px",
+                  }}
+                />
+              </Box>
 
-                    <TableCell>{emp.department}</TableCell>
+              {/* Department */}
+              <Box>
+                <Typography variant="body2" sx={{ color: "#cbd5e1", fontWeight: 600, fontSize: "14px" }}>
+                  {emp.department}
+                </Typography>
+              </Box>
 
-                    <TableCell>
-                      <Chip
-                        label={emp.status === "ACTIVE" ? "Active" : "Inactive"}
-                        size="small"
-                        sx={{
-                          bgcolor:
-                            emp.status === "ACTIVE"
-                              ? "rgba(34,197,94,0.2)"
-                              : "rgba(148,163,184,0.25)",
-                          color: emp.status === "ACTIVE" ? "#bbf7d0" : "#e5e7eb",
-                          fontWeight: 600,
-                        }}
-                      />
-                    </TableCell>
+              {/* Status */}
+              <Box>
+                <Chip
+                  label={emp.status === "ACTIVE" ? "Active" : "Inactive"}
+                  size="small"
+                  sx={{
+                    bgcolor:
+                      emp.status === "ACTIVE"
+                        ? "rgba(34,197,94,0.2)"
+                        : "rgba(148,163,184,0.1)",
+                    color: emp.status === "ACTIVE" ? "#86efac" : "#cbd5e1",
+                    fontWeight: 700,
+                    border: "1px solid rgba(255,255,255,0.2)",
+                    backdropFilter: "blur(8px)",
+                    fontSize: "12px",
+                  }}
+                />
+              </Box>
 
-                    <TableCell align="right">
-                      <Stack direction="row" spacing={1} justifyContent="flex-end">
-                        <IconButton
-                          size="small"
-                          onClick={() => handleOpenEdit(emp)}
-                          sx={{ color: "#e5e7eb" }}
-                          disabled={!isAdmin}
-                        >
-                          <FiEdit2 size={16} />
-                        </IconButton>
-                        <IconButton
-                          size="small"
-                          onClick={() => handleDelete(emp.user_id)}
-                          sx={{ color: "#fca5a5" }}
-                          disabled={!isAdmin}
-                        >
-                          <FiTrash2 size={16} />
-                        </IconButton>
-                      </Stack>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </Box>
-        </CardContent>
-      </Card>
+              {/* Actions */}
+              <Stack direction="row" spacing={1} sx={{ justifyContent: "flex-end" }}>
+                <IconButton
+                  size="small"
+                  onClick={() => handleOpenEdit(emp)}
+                  sx={{
+                    color: "#93c5fd",
+                    background: "rgba(59,130,246,0.12)",
+                    border: "1px solid rgba(59,130,246,0.3)",
+                    borderRadius: "8px",
+                    padding: "6px",
+                    transition: "all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)",
+                    "&:hover": {
+                      background: "rgba(59,130,246,0.25)",
+                      transform: "scale(1.15)",
+                      boxShadow: "0 8px 20px rgba(59,130,246,0.2)",
+                    },
+                  }}
+                  disabled={!isAdmin}
+                >
+                  <FiEdit2 size={16} />
+                </IconButton>
+                <IconButton
+                  size="small"
+                  onClick={() => handleDelete(emp.user_id)}
+                  sx={{
+                    color: "#fca5a5",
+                    background: "rgba(239,68,68,0.12)",
+                    border: "1px solid rgba(239,68,68,0.3)",
+                    borderRadius: "8px",
+                    padding: "6px",
+                    transition: "all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)",
+                    "&:hover": {
+                      background: "rgba(239,68,68,0.25)",
+                      transform: "scale(1.15)",
+                      boxShadow: "0 8px 20px rgba(239,68,68,0.2)",
+                    },
+                  }}
+                  disabled={!isAdmin}
+                >
+                  <FiTrash2 size={16} />
+                </IconButton>
+              </Stack>
+            </Box>
+          ))}
+        </Box>
+      </Box>
 
       {/* ADD / EDIT DIALOG */}
       {isAdmin && (
