@@ -1,8 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Box } from "@mui/material";
 import Body from "../../components/Body/Body";
 import Sidebar from "../../components/SideBar/SideBar";
 import TaskList from "../../components/Tasks/TaskList";
+import Dashboard from "../../components/Dashboard/Dashboard";
+import EmployeesSection from "../../components/Employees/EmployeesSection";
 
 export default function ManagerPage() {
   const [selected, setSelected] = useState("dashboard");
@@ -20,32 +22,32 @@ export default function ManagerPage() {
 
       case "employees":
         return (
-          <>
-            <h2>Employees</h2>
-            <p>Employee list and management UI will show here.</p>
-          </>
+          <EmployeesSection />
         );
-
+      
       default:
-        return (
-          <>
-            <h1>Manager Dashboard</h1>
-            <p>Welcome to the Manager Page!</p>
-            <p>Choose an item from the left to view details without navigating away.</p>
-          </>
-        );
+        return <Dashboard />;
     }
   }
+
+  useEffect(() => {
+    const onNavigate = (e) => {
+      const sel = e?.detail?.selected;
+      if (sel) setSelected(sel);
+    };
+    window.addEventListener("navigate", onNavigate);
+    return () => window.removeEventListener("navigate", onNavigate);
+  }, []);
 
   return (
     <Box
       sx={{
         display: "flex",
-        height: "100vh",      // ⭐ Required for proper dashboard layout
+        height: "100vh",      
         padding: "16px",
         backgroundColor: "#111827",
         gap: "16px",
-        overflow: "hidden",   // ⭐ Prevents the page from scrolling
+        overflow: "hidden",   
       }}
     >
       <Sidebar 
