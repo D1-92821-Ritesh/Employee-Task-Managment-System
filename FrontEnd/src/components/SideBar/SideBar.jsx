@@ -15,7 +15,7 @@ export default function Sidebar({ role = null, selected = null, onMenuSelect = n
 
   ];
 
-  // filter menu by role if provided
+
   const visibleMenu = role ? menuItems.filter((m) => m.allowedRoles.includes(role)) : menuItems;
 
   return (
@@ -44,7 +44,6 @@ export default function Sidebar({ role = null, selected = null, onMenuSelect = n
         },
       }}
     >
-      {/* TOP SECTION */}
       <Box>
         <Typography variant="h4" fontWeight="bold">
           TaskFlow
@@ -53,7 +52,6 @@ export default function Sidebar({ role = null, selected = null, onMenuSelect = n
           Developer Edition
         </Typography>
 
-          {/* MENU LIST */}
         <List sx={{ marginTop: 2 }}>
           {visibleMenu.map((item) => {
             const isActive = selected ? selected === item.key : location.pathname === item.path;
@@ -61,7 +59,7 @@ export default function Sidebar({ role = null, selected = null, onMenuSelect = n
               <ListItemButton
                 key={item.key}
                 onClick={() => {
-                  // prefer in-page handler; fall back to navigation
+
                   if (onMenuSelect) onMenuSelect(item.key);
                   else navigate(item.path);
                 }}
@@ -88,9 +86,6 @@ export default function Sidebar({ role = null, selected = null, onMenuSelect = n
         </List>
       </Box>
       <Profile></Profile>
-      {/* BOTTOM SECTION */}
-        
-      
     </Drawer>
   );
 }

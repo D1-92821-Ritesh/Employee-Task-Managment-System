@@ -37,14 +37,14 @@ export default function EmployeePage() {
     <Box
       sx={{
         display: "flex",
-        height: "100vh",        
+        height: "100vh",
         padding: "16px",
         backgroundColor: "#111827",
         gap: "16px",
-        overflow: "hidden",     
+        overflow: "hidden",
       }}
     >
-      <Sidebar 
+      <Sidebar
         role={userRole}
         selected={selected}
         onMenuSelect={setSelected}

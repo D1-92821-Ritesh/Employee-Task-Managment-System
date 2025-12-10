@@ -24,7 +24,6 @@ function App() {
       <Routes>
         <Route path="/" element={<Navigate to="/login" />} />
         <Route path="/login" element={<Login />} />
-        {/* <Route path="/home" element={<Home />} /> */}
         <Route path="/admin" element={<AdminPage />} />
         <Route path="/manager" element={<ManagerPage />} />
         <Route path="/employee" element={<EmployeePage />} />

@@ -8,7 +8,6 @@ export default function TaskHeader({ task, onClose, onMarkComplete }) {
 
   return (
     <Box mb={3}>
-      {/* Close Button */}
       <Button
         onClick={onClose}
         sx={{

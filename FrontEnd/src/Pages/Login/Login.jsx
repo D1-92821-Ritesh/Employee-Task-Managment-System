@@ -20,15 +20,7 @@ export function Login() {
 
     setLoading(true);
 
-    //---------------------- API call------------------------
-    /*
-    
-    const response = await axios.post('/api/login', {
-      
-    })
-
-    */
-   const user = USER.find((u)=> u.username === username.trim() && u.password_hash === password);
+    const user = USER.find((u)=> u.username === username.trim() && u.password_hash === password);
     if (user) {
       toast.success("Login successful!");
       localStorage.setItem("user", JSON.stringify(user));
@@ -40,8 +32,6 @@ export function Login() {
       setUsername("");
       setPassword("");
 
-      //navigating to home
-      // navigate("/home");
     } else {
       toast.error("Invalid username or password");
     }

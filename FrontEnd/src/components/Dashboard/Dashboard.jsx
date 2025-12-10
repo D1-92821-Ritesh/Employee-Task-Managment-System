@@ -1,9 +1,3 @@
-/* Dashboard.jsx — Part 1 of 3
-   Imports, theme styles, utility helpers, animated number hook,
-   pie label renderer, and glass tooltip component.
-   (Then wait for parts 2 & 3 to complete the file)
-*/
-
 import React, { useMemo, useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -35,9 +29,7 @@ import {
 
 import { TASK, USER } from "../../data/mockData";
 
-/* --------------------------------------------------------------------
-   THEME: glass / compact styles (shared)
---------------------------------------------------------------------- */
+
 const GLASS = {
   background: "linear-gradient(135deg, rgba(17,24,39,0.72), rgba(30,41,59,0.6))",
   borderRadius: "14px",
@@ -63,15 +55,12 @@ const KPI_CARD = {
   },
 };
 
-/* --------------------------------------------------------------------
-   UTILITIES
---------------------------------------------------------------------- */
 
-/** Safe ISO parse - returns Date or null */
+
+
 function parseDateStringISO(s) {
   if (!s) return null;
   try {
-    // Accepts "YYYY-MM-DD" or ISO timestamp
     const d = new Date(s);
     if (isNaN(d)) return null;
     return d;
@@ -80,7 +69,7 @@ function parseDateStringISO(s) {
   }
 }
 
-/** Simple week key grouping for timeline: "YYYY-WN" */
+
 function weekKey(date) {
   const d = new Date(date);
   const year = d.getFullYear();
@@ -92,7 +81,7 @@ function weekKey(date) {
   return `${year}-W${week}`;
 }
 
-/** Compute percentage delta between last two points */
+
 function computeDelta(arr) {
   if (!arr || arr.length < 2) return 0;
   const last = arr[arr.length - 1].value ?? 0;
@@ -101,10 +90,7 @@ function computeDelta(arr) {
   return Math.round(((last - prev) / Math.abs(prev)) * 100);
 }
 
-/* --------------------------------------------------------------------
-   Animated number hook (small, smooth counters)
-   Usage: const animated = useAnimatedNumber(target, durationMs)
---------------------------------------------------------------------- */
+
 function useAnimatedNumber(target, duration = 600) {
   const [value, setValue] = useState(0);
   const rafRef = useRef(null);
@@ -123,7 +109,7 @@ function useAnimatedNumber(target, duration = 600) {
 
     const step = (time) => {
       const t = Math.min(1, (time - start) / duration);
-      const eased = 1 - Math.pow(1 - t, 3); // easeOutCubic
+      const eased = 1 - Math.pow(1 - t, 3);
       const v = Math.round(fromRef.current + (target - fromRef.current) * eased);
       setValue(v);
       if (t < 1) rafRef.current = requestAnimationFrame(step);
@@ -133,16 +119,12 @@ function useAnimatedNumber(target, duration = 600) {
     rafRef.current = requestAnimationFrame(step);
 
     return () => cancelAnimationFrame(rafRef.current);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
   }, [target]);
 
   return value;
 }
 
-/* --------------------------------------------------------------------
-   Pie label renderer: draws percentage text inside slice (white)
-   Used with <Pie label={renderPieLabel} labelLine={false} />
---------------------------------------------------------------------- */
 const renderPieLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }) => {
   const radius = innerRadius + (outerRadius - innerRadius) * 0.55;
   const x = cx + radius * Math.cos(-midAngle * (Math.PI / 180));
@@ -163,10 +145,6 @@ const renderPieLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent })
   );
 };
 
-/* --------------------------------------------------------------------
-   Glass-styled tooltip for Recharts (use as: <Tooltip content={<GlassTooltip/>} />)
-   Appearance: semi-transparent glass, blur, border, subtle shadow
---------------------------------------------------------------------- */
 const GlassTooltip = ({ active, payload, label }) => {
   if (!active || !payload || !payload.length) return null;
 
@@ -190,7 +168,7 @@ const GlassTooltip = ({ active, payload, label }) => {
       )}
 
       {payload.map((entry, i) => {
-        // Recharts payload entry usually has { name, value, payload, color }
+
         const name = entry.name ?? (entry.payload && entry.payload.name) ?? "";
         const val = entry.value;
         const color = entry.color ?? entry.fill ?? "#fff";
@@ -209,13 +187,9 @@ const GlassTooltip = ({ active, payload, label }) => {
     </Box>
   );
 };
-/* Dashboard.jsx — Part 2 of 3
-   Render helpers, KPI components, charts & admin leaderboard
-*/
 
-/* -------------------------------------------------------------
-   KPI RENDERERS (with animated numbers)
-------------------------------------------------------------- */
+
+
 
 function KPITitle({ children }) {
   return (
@@ -284,9 +258,7 @@ function renderOverdueKPI(animatedMetrics) {
   );
 }
 
-/* -------------------------------------------------------------
-   PIE CHART — PRIORITY
-------------------------------------------------------------- */
+
 function PriorityChart({ priorityData }) {
   return (
     <CardContent sx={{ p: 2 }}>
@@ -319,9 +291,7 @@ function PriorityChart({ priorityData }) {
   );
 }
 
-/* -------------------------------------------------------------
-   PIE CHART — STATUS
-------------------------------------------------------------- */
+
 function StatusPieChart({ statusData }) {
   return (
     <CardContent sx={{ p: 2 }}>
@@ -354,9 +324,7 @@ function StatusPieChart({ statusData }) {
   );
 }
 
-/* -------------------------------------------------------------
-   BAR CHART — STATUS
-------------------------------------------------------------- */
+
 function StatusBarChart({ statusData }) {
   return (
     <CardContent sx={{ p: 2 }}>
@@ -377,9 +345,7 @@ function StatusBarChart({ statusData }) {
   );
 }
 
-/* -------------------------------------------------------------
-   LINE CHART — 8 WEEK TIMELINE
-------------------------------------------------------------- */
+
 function TimelineChart({ timelineData }) {
   return (
     <CardContent sx={{ p: 2 }}>
@@ -415,9 +381,7 @@ function TimelineChart({ timelineData }) {
   );
 }
 
-/* -------------------------------------------------------------
-   SCATTER — EMPLOYEE WORKLOAD
-------------------------------------------------------------- */
+
 function WorkloadScatter({ workloadData }) {
   return (
     <CardContent sx={{ p: 2 }}>
@@ -441,9 +405,7 @@ function WorkloadScatter({ workloadData }) {
   );
 }
 
-/* -------------------------------------------------------------
-   ADMIN ONLY — TOP PERFORMERS
-------------------------------------------------------------- */
+
 function TopManagersCard({ managers }) {
   return (
     <CardContent sx={{ p: 2 }}>
@@ -493,17 +455,12 @@ function TopManagersCard({ managers }) {
     </CardContent>
   );
 }
-/* -------------------------------------------------------------
-   Dashboard.jsx — PART 3 of 3
-   MAIN RENDER + FILTERING + KPI GRID + CHART GRID
-------------------------------------------------------------- */
+
 
 export default function Dashboard() {
   const navigate = useNavigate();
 
-  /* ---------------------------------------------------------
-     Load user
-  --------------------------------------------------------- */
+  
   const currentUser = useMemo(() => {
     try {
       return JSON.parse(localStorage.getItem("user")) || null;
@@ -520,9 +477,7 @@ export default function Dashboard() {
     );
   }
 
-  /* ---------------------------------------------------------
-     ROLE-BASED TASK FILTERING
-  --------------------------------------------------------- */
+  
   const relevantTasks = useMemo(() => {
     const role = currentUser.role?.toUpperCase();
 
@@ -535,9 +490,7 @@ export default function Dashboard() {
     return [];
   }, [currentUser]);
 
-  /* ---------------------------------------------------------
-     METRICS CALC
-  --------------------------------------------------------- */
+  
   const metrics = useMemo(() => {
     const total = relevantTasks.length;
 
@@ -572,9 +525,7 @@ export default function Dashboard() {
     };
   }, [relevantTasks]);
 
-  /* ---------------------------------------------------------
-     TIMELINE (8 weeks)
-  --------------------------------------------------------- */
+  
   const timelineData = useMemo(() => {
     const now = new Date();
     const weeks = [];
@@ -607,9 +558,7 @@ export default function Dashboard() {
   const sparkline = timelineData.map((d) => ({ value: d.completed }));
   const deltaCompleted = computeDelta(sparkline);
 
-  /* ---------------------------------------------------------
-     CHART DATA
-  --------------------------------------------------------- */
+  
   const priorityData = [
     {
       name: "High",
@@ -649,9 +598,7 @@ export default function Dashboard() {
     });
   }, [relevantTasks]);
 
-  /* ---------------------------------------------------------
-     ADMIN - Top Managers
-  --------------------------------------------------------- */
+  
   const topManagers = useMemo(() => {
     if (currentUser.role !== "ADMIN") return [];
 
@@ -666,9 +613,7 @@ export default function Dashboard() {
       .sort((a, b) => b.completed - a.completed);
   }, [currentUser]);
 
-  /* ---------------------------------------------------------
-     KPI CLICK → navigate & filter tasks
-  --------------------------------------------------------- */
+  
   const handleMetricClick = (filter) => {
     let statusFilter = null;
 
@@ -681,9 +626,7 @@ export default function Dashboard() {
     window.dispatchEvent(new CustomEvent("navigate", { detail: { selected: "tasks" } }));
   };
 
-  /* ---------------------------------------------------------
-     MAIN RENDER
-  --------------------------------------------------------- */
+  
 
   return (
     <Box
@@ -695,7 +638,7 @@ export default function Dashboard() {
         overflow: "hidden",
       }}
     >
-      {/* ------------------------------ HEADER ------------------------------ */}
+      {}
       <Box
         sx={{
           position: "sticky",
@@ -734,7 +677,7 @@ export default function Dashboard() {
         </Box>
       </Box>
 
-      {/* ------------------------------ SCROLL AREA ------------------------------ */}
+      {}
       <Box
         sx={{
           flex: 1,
@@ -746,7 +689,7 @@ export default function Dashboard() {
           gap: 2,
         }}
       >
-        {/* ========================= KPI ROW ========================= */}
+        {}
         <Box
           sx={{
             display: "grid",
@@ -771,7 +714,7 @@ export default function Dashboard() {
           </Card>
         </Box>
 
-        {/* ========================= CHART ROW 1 ========================= */}
+        {}
         <Box
           sx={{
             display: "grid",
@@ -792,7 +735,7 @@ export default function Dashboard() {
           </Card>
         </Box>
 
-        {/* ========================= CHART ROW 2 ========================= */}
+        {}
         <Box
           sx={{
             display: "grid",
@@ -819,6 +762,4 @@ export default function Dashboard() {
   );
 }
 
-/* -------------------------------------------------------------
-   END OF PART 3 (FULL DASHBOARD COMPLETE)
-------------------------------------------------------------- */
+

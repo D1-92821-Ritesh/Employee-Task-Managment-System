@@ -17,12 +17,10 @@ export default function CommentsSection({
         Comments ({comments.length})
       </Typography>
 
-      {/* Comments List */}
       <Box mb={3}>
         <CommentsList comments={comments} usersById={usersById} />
       </Box>
 
-      {/* Add Comment Input */}
       <CommentInput
         value={newComment}
         onChange={(e) => onCommentChange(e.target.value)}

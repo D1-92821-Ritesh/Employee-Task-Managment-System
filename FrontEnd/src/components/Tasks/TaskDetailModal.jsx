@@ -65,23 +65,20 @@ export default function TaskDetailModal({ task, open, onClose, currentUser, onTa
           p: 8,
           color: 'white',
           position: 'relative',
-          scrollbarWidth: "none",          // Firefox
+          scrollbarWidth: "none",
         "&::-webkit-scrollbar": {
-          display: "none",              // Chrome, Safari
+          display: "none",
         }
         }}
       >
         {task && (
           <Box>
-            {/* Header Section */}
             <TaskHeader task={task} onClose={onClose} onMarkComplete={handleMarkComplete} />
             <Divider sx={{ borderColor: 'rgba(255,255,255,0.1)', my: 2 }} />
 
-            {/* Task Details Section */}
             <TaskDetails task={task} usersById={usersById} />
             <Divider sx={{ borderColor: 'rgba(255,255,255,0.1)', my: 3 }} />
 
-            {/* Comments Section */}
             <CommentsSection
               comments={taskComments}
               usersById={usersById}

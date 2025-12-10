@@ -150,7 +150,7 @@ export default function CreateTaskModal({ open, onClose, onTaskCreate }) {
         },
       }}
     >
-      {/* HEADER */}
+      {}
       <DialogTitle
         sx={{
           fontWeight: "700",
@@ -163,7 +163,7 @@ export default function CreateTaskModal({ open, onClose, onTaskCreate }) {
         Create New Task
       </DialogTitle>
 
-      {/* FORM */}
+      {}
       <DialogContent
         sx={{
           py: 3,
@@ -172,7 +172,7 @@ export default function CreateTaskModal({ open, onClose, onTaskCreate }) {
           gap: 3,
         }}
       >
-        {/* TITLE */}
+        {}
         <Box>
           <Typography sx={labelStyle}>Task Title</Typography>
           <TextField
@@ -189,7 +189,7 @@ export default function CreateTaskModal({ open, onClose, onTaskCreate }) {
           />
         </Box>
 
-        {/* DESCRIPTION */}
+        {}
         <Box>
           <Typography sx={labelStyle}>Description</Typography>
           <TextField
@@ -206,7 +206,7 @@ export default function CreateTaskModal({ open, onClose, onTaskCreate }) {
           />
         </Box>
 
-        {/* PRIORITY */}
+        {}
         <Box>
           <Typography sx={labelStyle}>Priority</Typography>
           <FormControl fullWidth>
@@ -224,7 +224,7 @@ export default function CreateTaskModal({ open, onClose, onTaskCreate }) {
           </FormControl>
         </Box>
 
-        {/* ASSIGN TO */}
+        {}
         <Box>
           <Typography sx={labelStyle}>Assign To</Typography>
           <FormControl fullWidth error={!!errors.assigned_to_id}>
@@ -252,7 +252,7 @@ export default function CreateTaskModal({ open, onClose, onTaskCreate }) {
           </FormControl>
         </Box>
 
-        {/* DUE DATE */}
+        {}
         <Box>
           <Typography sx={labelStyle}>Due Date</Typography>
           <TextField
@@ -270,7 +270,7 @@ export default function CreateTaskModal({ open, onClose, onTaskCreate }) {
         </Box>
       </DialogContent>
 
-      {/* BUTTONS */}
+      {}
       <DialogActions
         sx={{
           borderTop: "1px solid rgba(255,255,255,0.1)",

@@ -1,26 +1,24 @@
 import React from "react";
-import { Box, Avatar, Typography, Button } from "@mui/material"; // Make sure these are imported
+import { Box, Avatar, Typography, Button } from "@mui/material";
 import { FiLogOut } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 
 const Profile = () => {
-  // Get user from localStorage and parse it
   const userString = localStorage.getItem("user");
   const user = userString ? JSON.parse(userString) : null;
   const navigate = useNavigate();
 
   const handleLogout = () => {
     localStorage.removeItem("user");
-    // You can also redirect to login page here
+
     navigate("/")
     console.log("Logged out");
   };
 
-  if (!user) return <p>No user found</p>; // Optional fallback
+  if (!user) return <p>No user found</p>;
 
   return (
     <Box sx={{ marginTop: "auto", marginBottom: "20px" }}>
-      {/* Profile */}
       <Box
         sx={{
           display: "flex",
@@ -52,7 +50,6 @@ const Profile = () => {
         </Box>
       </Box>
 
-      {/* Logout Button */}
       <Button
         startIcon={<FiLogOut size={20} />}
         onClick={handleLogout}

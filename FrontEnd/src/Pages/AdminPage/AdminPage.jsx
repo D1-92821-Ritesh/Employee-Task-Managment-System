@@ -40,16 +40,16 @@ export default function AdminPage() {
     <Box
       sx={{
         display: "flex",
-        height: "100vh",          
+        height: "100vh",
         backgroundColor: "#111827",
         gap: "16px",
-        overflow: "hidden",       
+        overflow: "hidden",
       }}
     >
-      <Sidebar 
-        role={userRole} 
-        selected={selected} 
-        onMenuSelect={setSelected} 
+      <Sidebar
+        role={userRole}
+        selected={selected}
+        onMenuSelect={setSelected}
       />
 
       <Body>

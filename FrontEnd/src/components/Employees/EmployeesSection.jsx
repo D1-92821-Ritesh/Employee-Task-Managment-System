@@ -29,13 +29,14 @@ const GLASS_STYLE = {
 
 const ROLE_PRIORITY = { ADMIN: 1, MANAGER: 2, EMPLOYEE: 3 };
 
-// ---------- FORM DIALOG COMPONENT ----------
+
 function EmployeeFormDialog({ open, onClose, onSave, employee, managers }) {
   const isEditMode = Boolean(employee);
 
   const [form, setForm] = useState({
-    user_id: employee?.user_id ?? null,
+    
     username: employee?.username ?? "",
+    password_hash: "",
     role: employee?.role ?? "EMPLOYEE",
     department: employee?.department ?? "General",
     status: employee?.status ?? "ACTIVE",
@@ -44,8 +45,9 @@ function EmployeeFormDialog({ open, onClose, onSave, employee, managers }) {
 
   useEffect(() => {
     setForm({
-      user_id: employee?.user_id ?? null,
+      user_id: employee?.user_id ?? "",
       username: employee?.username ?? "",
+      password_hash: "",
       role: employee?.role ?? "EMPLOYEE",
       department: employee?.department ?? "General",
       status: employee?.status ?? "ACTIVE",
@@ -62,6 +64,12 @@ function EmployeeFormDialog({ open, onClose, onSave, employee, managers }) {
 
   const handleSubmit = () => {
     if (!form.username.trim()) return;
+
+    if (!isEditMode) {
+      if (!String(form.user_id).trim()) return;
+      if (!String(form.password_hash).trim()) return;
+    }
+
     onSave(form);
   };
 
@@ -101,7 +109,7 @@ function EmployeeFormDialog({ open, onClose, onSave, employee, managers }) {
           mt: 1,
         }}
       >
-        {/* Input fields styled like the task form */}
+
         <TextField
           label="Username"
           value={form.username}
@@ -125,6 +133,32 @@ function EmployeeFormDialog({ open, onClose, onSave, employee, managers }) {
             },
           }}
         />
+        {!isEditMode && (
+          <TextField
+            label="Password"
+            type="password"
+            value={form.password_hash}
+            onChange={handleChange("password_hash")}
+            fullWidth
+            variant="outlined"
+            InputLabelProps={{
+              sx: { color: "#94a3b8" },
+            }}
+            InputProps={{
+              sx: {
+                color: "white",
+                background: "rgba(255,255,255,0.03)",
+                borderRadius: "12px",
+                "& fieldset": {
+                  borderColor: "rgba(148,163,184,0.25)",
+                },
+                "&:hover fieldset": {
+                  borderColor: "rgba(148,163,184,0.45)",
+                },
+              },
+            }}
+          />
+        )}
 
         <FormControl fullWidth>
           <InputLabel sx={{ color: "#94a3b8" }}>Role</InputLabel>
@@ -140,7 +174,6 @@ function EmployeeFormDialog({ open, onClose, onSave, employee, managers }) {
               "&:hover fieldset": { borderColor: "rgba(148,163,184,0.45)" },
             }}
           >
-            <MenuItem value="ADMIN">ADMIN</MenuItem>
             <MenuItem value="MANAGER">MANAGER</MenuItem>
             <MenuItem value="EMPLOYEE">EMPLOYEE</MenuItem>
           </Select>
@@ -250,7 +283,7 @@ function EmployeeFormDialog({ open, onClose, onSave, employee, managers }) {
   );
 }
 
-// ---------- MAIN COMPONENT ----------
+
 export default function EmployeesSection() {
   const [currentUser] = useState(() => {
     try {
@@ -280,7 +313,6 @@ export default function EmployeesSection() {
     [employees]
   );
 
-  // FILTER based on role
   const visibleEmployees = useMemo(() => {
     if (!currentUser) return [];
 
@@ -294,7 +326,6 @@ export default function EmployeesSection() {
     return [];
   }, [employees, currentUser, isAdmin, isManager]);
 
-  // SORT
   const sortedEmployees = useMemo(() => {
     return [...visibleEmployees].sort((a, b) => {
       const r1 = ROLE_PRIORITY[a.role] ?? 99;
@@ -303,8 +334,6 @@ export default function EmployeesSection() {
       return a.username.localeCompare(b.username);
     });
   }, [visibleEmployees]);
-
-  // ---- ACTIONS ----
 
   const handleDelete = (id) => {
     if (!isAdmin) return;
@@ -329,8 +358,8 @@ export default function EmployeesSection() {
 
   const handleSaveFromDialog = (form) => {
     setEmployees((prev) => {
-      if (form.user_id) {
-        // EDIT EXISTING
+      if (editingEmployee) {
+
         return prev.map((e) =>
           e.user_id === form.user_id
             ? {
@@ -344,12 +373,11 @@ export default function EmployeesSection() {
             : e
         );
       } else {
-        // ADD NEW
-        const maxId = prev.reduce((m, e) => Math.max(m, e.user_id), 0);
+
         const newEmp = {
-          user_id: maxId + 1,
+          user_id: Number(form.user_id),
           username: form.username,
-          password_hash: "password123",
+          password_hash: form.password_hash,
           role: form.role,
           manager_id: form.manager_id || null,
           department: form.department,
@@ -382,7 +410,7 @@ export default function EmployeesSection() {
         p: 3,
       }}
     >
-      {/* HEADER */}
+      {}
       <Box
         sx={{
           mb: 2,
@@ -413,14 +441,16 @@ export default function EmployeesSection() {
               px: 2.5,
               py: 1,
               color: "#e6e9ff",
-              background: "linear-gradient(145deg, rgba(129,140,248,0.12), rgba(99,102,241,0.08))",
+              background:
+                "linear-gradient(145deg, rgba(129,140,248,0.12), rgba(99,102,241,0.08))",
               border: "1px solid rgba(129,140,248,0.22)",
               backdropFilter: "blur(6px)",
               boxShadow: "0 6px 18px rgba(99,102,241,0.08)",
-              '&:hover': {
-                background: "linear-gradient(145deg, rgba(129,140,248,0.18), rgba(99,102,241,0.12))",
-                transform: 'translateY(-2px)',
-              }
+              "&:hover": {
+                background:
+                  "linear-gradient(145deg, rgba(129,140,248,0.18), rgba(99,102,241,0.12))",
+                transform: "translateY(-2px)",
+              },
             }}
           >
             Add Employee
@@ -428,7 +458,7 @@ export default function EmployeesSection() {
         )}
       </Box>
 
-      {/* EMPLOYEE TABLE WITH CARD ROWS */}
+      {}
       <Box
         sx={{
           flex: 1,
@@ -441,7 +471,7 @@ export default function EmployeesSection() {
           overflow: "hidden",
         }}
       >
-        {/* TABLE HEADER */}
+        {}
         <Box
           sx={{
             display: "grid",
@@ -454,24 +484,70 @@ export default function EmployeesSection() {
             alignItems: "center",
           }}
         >
-          <Typography variant="subtitle2" sx={{ color: "#cbd5f5", fontWeight: 700, fontSize: "13px", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+          <Typography
+            variant="subtitle2"
+            sx={{
+              color: "#cbd5f5",
+              fontWeight: 700,
+              fontSize: "13px",
+              textTransform: "uppercase",
+              letterSpacing: "0.5px",
+            }}
+          >
             Employee
           </Typography>
-          <Typography variant="subtitle2" sx={{ color: "#cbd5f5", fontWeight: 700, fontSize: "13px", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+          <Typography
+            variant="subtitle2"
+            sx={{
+              color: "#cbd5f5",
+              fontWeight: 700,
+              fontSize: "13px",
+              textTransform: "uppercase",
+              letterSpacing: "0.5px",
+            }}
+          >
             Role
           </Typography>
-          <Typography variant="subtitle2" sx={{ color: "#cbd5f5", fontWeight: 700, fontSize: "13px", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+          <Typography
+            variant="subtitle2"
+            sx={{
+              color: "#cbd5f5",
+              fontWeight: 700,
+              fontSize: "13px",
+              textTransform: "uppercase",
+              letterSpacing: "0.5px",
+            }}
+          >
             Department
           </Typography>
-          <Typography variant="subtitle2" sx={{ color: "#cbd5f5", fontWeight: 700, fontSize: "13px", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+          <Typography
+            variant="subtitle2"
+            sx={{
+              color: "#cbd5f5",
+              fontWeight: 700,
+              fontSize: "13px",
+              textTransform: "uppercase",
+              letterSpacing: "0.5px",
+            }}
+          >
             Status
           </Typography>
-          <Typography variant="subtitle2" sx={{ color: "#cbd5f5", fontWeight: 700, fontSize: "13px", textTransform: "uppercase", letterSpacing: "0.5px", textAlign: "right" }}>
+          <Typography
+            variant="subtitle2"
+            sx={{
+              color: "#cbd5f5",
+              fontWeight: 700,
+              fontSize: "13px",
+              textTransform: "uppercase",
+              letterSpacing: "0.5px",
+              textAlign: "right",
+            }}
+          >
             Actions
           </Typography>
         </Box>
 
-        {/* SCROLLABLE ROWS */}
+        {}
         <Box
           sx={{
             flex: 1,
@@ -499,32 +575,44 @@ export default function EmployeesSection() {
                 gap: 2,
                 padding: "14px 20px",
                 alignItems: "center",
-                background: "linear-gradient(135deg, rgba(51,65,85,0.5) 0%, rgba(30,41,59,0.4) 100%)",
+                background:
+                  "linear-gradient(135deg, rgba(51,65,85,0.5) 0%, rgba(30,41,59,0.4) 100%)",
                 border: "1.5px solid rgba(148,163,184,0.3)",
                 borderRadius: "0px",
                 backdropFilter: "blur(16px)",
-                boxShadow: "0 8px 32px rgba(0,0,0,0.25), inset 0 1px 1px rgba(255,255,255,0.12)",
-                transition: "all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)",
+                boxShadow:
+                  "0 8px 32px rgba(0,0,0,0.25), inset 0 1px 1px rgba(255,255,255,0.12)",
+                transition:
+                  "all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)",
                 flexShrink: 0,
                 "&:hover": {
                   transform: "translateY(-4px)",
-                  background: "linear-gradient(135deg, rgba(79,102,131,0.6) 0%, rgba(51,65,85,0.5) 100%)",
+                  background:
+                    "linear-gradient(135deg, rgba(79,102,131,0.6) 0%, rgba(51,65,85,0.5) 100%)",
                   border: "1.5px solid rgba(148,163,184,0.55)",
-                  boxShadow: "0 16px 40px rgba(99,102,241,0.2), inset 0 1px 1px rgba(255,255,255,0.2)",
+                  boxShadow:
+                    "0 16px 40px rgba(99,102,241,0.2), inset 0 1px 1px rgba(255,255,255,0.2)",
                 },
               }}
             >
-              {/* Employee Name & ID */}
+              {}
               <Box>
-                <Typography variant="body2" fontWeight={700} sx={{ color: "#f1f5f9", fontSize: "15px" }}>
+                <Typography
+                  variant="body2"
+                  fontWeight={700}
+                  sx={{ color: "#f1f5f9", fontSize: "15px" }}
+                >
                   {emp.username}
                 </Typography>
-                <Typography variant="caption" sx={{ color: "#94a3b8", fontSize: "12px" }}>
+                <Typography
+                  variant="caption"
+                  sx={{ color: "#94a3b8", fontSize: "12px" }}
+                >
                   ID: {emp.user_id}
                 </Typography>
               </Box>
 
-              {/* Role */}
+              {}
               <Box>
                 <Chip
                   label={emp.role}
@@ -550,14 +638,21 @@ export default function EmployeesSection() {
                 />
               </Box>
 
-              {/* Department */}
+              {}
               <Box>
-                <Typography variant="body2" sx={{ color: "#cbd5e1", fontWeight: 600, fontSize: "14px" }}>
+                <Typography
+                  variant="body2"
+                  sx={{
+                    color: "#cbd5e1",
+                    fontWeight: 600,
+                    fontSize: "14px",
+                  }}
+                >
                   {emp.department}
                 </Typography>
               </Box>
 
-              {/* Status */}
+              {}
               <Box>
                 <Chip
                   label={emp.status === "ACTIVE" ? "Active" : "Inactive"}
@@ -567,7 +662,8 @@ export default function EmployeesSection() {
                       emp.status === "ACTIVE"
                         ? "rgba(34,197,94,0.2)"
                         : "rgba(148,163,184,0.1)",
-                    color: emp.status === "ACTIVE" ? "#86efac" : "#cbd5e1",
+                    color:
+                      emp.status === "ACTIVE" ? "#86efac" : "#cbd5e1",
                     fontWeight: 700,
                     border: "1px solid rgba(255,255,255,0.2)",
                     backdropFilter: "blur(8px)",
@@ -576,8 +672,12 @@ export default function EmployeesSection() {
                 />
               </Box>
 
-              {/* Actions */}
-              <Stack direction="row" spacing={1} sx={{ justifyContent: "flex-end" }}>
+              {}
+              <Stack
+                direction="row"
+                spacing={1}
+                sx={{ justifyContent: "flex-end" }}
+              >
                 <IconButton
                   size="small"
                   onClick={() => handleOpenEdit(emp)}
@@ -587,7 +687,8 @@ export default function EmployeesSection() {
                     border: "1px solid rgba(59,130,246,0.3)",
                     borderRadius: "8px",
                     padding: "6px",
-                    transition: "all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)",
+                    transition:
+                      "all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)",
                     "&:hover": {
                       background: "rgba(59,130,246,0.25)",
                       transform: "scale(1.15)",
@@ -607,7 +708,8 @@ export default function EmployeesSection() {
                     border: "1px solid rgba(239,68,68,0.3)",
                     borderRadius: "8px",
                     padding: "6px",
-                    transition: "all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)",
+                    transition:
+                      "all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)",
                     "&:hover": {
                       background: "rgba(239,68,68,0.25)",
                       transform: "scale(1.15)",
@@ -624,7 +726,7 @@ export default function EmployeesSection() {
         </Box>
       </Box>
 
-      {/* ADD / EDIT DIALOG */}
+      {}
       {isAdmin && (
         <EmployeeFormDialog
           open={dialogOpen}

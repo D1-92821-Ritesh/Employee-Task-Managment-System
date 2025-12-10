@@ -20,7 +20,7 @@ const USER = [
 ];
 
 const TASK = [
-  // Manager 1 → Manager 2 & 3
+
   {
     task_id: 1,
     title: "Quarterly Planning",
@@ -42,7 +42,7 @@ const TASK = [
     assigned_by_id: 2,
   },
 
-  // Manager 2 → Employees (5–9)
+
   {
     task_id: 3,
     title: "Build Login UI",
@@ -94,7 +94,7 @@ const TASK = [
     assigned_by_id: 3,
   },
 
-  // Manager 3 → Employees (10–14)
+
   {
     task_id: 8,
     title: "Design Dashboard",

@@ -6,7 +6,6 @@ import { formatDate } from "./utils";
 export default function TaskDetails({ task, usersById }) {
   return (
     <Stack spacing={2} mb={3}>
-      {/* Due Date */}
       <Box display="flex" alignItems="center" gap={2}>
         <FiClock size={20} color="#64748b" />
         <Box>
@@ -19,7 +18,6 @@ export default function TaskDetails({ task, usersById }) {
         </Box>
       </Box>
 
-      {/* Assigned To & By */}
       <Box
         display="grid"
         gridTemplateColumns="1fr 1fr"

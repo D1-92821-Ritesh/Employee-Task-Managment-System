@@ -1,4 +1,4 @@
-// Color mapping utilities for task status and priority
+
 export const getStatusColor = (status) => {
   if (!status) return "default";
   const s = String(status).toLowerCase().replace(/[_\s-]/g, "");
@@ -18,7 +18,7 @@ export const getPriorityColor = (priority) => {
   }
 };
 
-// Date formatting utility
+
 export const formatDate = (dt) => {
   if (!dt) return "-";
   return dt.split(" ")[0];
