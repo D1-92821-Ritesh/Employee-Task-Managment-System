@@ -11,7 +11,7 @@ import {
   Button
 } from "@mui/material";
 import { FiClock, FiUser, FiPlus, FiX } from "react-icons/fi";
-import { TASK, USER } from "../../data/mockData";
+import api from "../../services/api";
 import TaskDetailModal from "./TaskDetailModal";
 import CreateTaskModal from "./CreateTaskModal";
 
@@ -63,11 +63,30 @@ export default function TaskList() {
   });
 
   const [selectedTask, setSelectedTask] = useState(null);
-  const [tasks, setTasks] = useState(TASK);
+  const [tasks, setTasks] = useState([]);
+  const [usersMap, setUsersMap] = useState(new Map());
   const [createTaskModalOpen, setCreateTaskModalOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState(null);
 
-  const usersById = useMemo(() => new Map(USER.map(u => [u.user_id, u])), []);
+  // Fetch Tasks and Users
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!currentUser) return;
+      try {
+        const [tasksRes, usersRes] = await Promise.all([
+          api.get("/tasks"),
+          api.get("/users")
+        ]);
+        setTasks(tasksRes.data);
+        const map = new Map();
+        usersRes.data.forEach(u => map.set(u.user_id, u));
+        setUsersMap(map);
+      } catch (error) {
+        console.error("Failed to fetch data", error);
+      }
+    };
+    fetchData();
+  }, [currentUser]);
 
   // Listen for filter events from Dashboard
   React.useEffect(() => {
@@ -77,7 +96,7 @@ export default function TaskList() {
     };
 
     window.addEventListener("filterTasks", handleFilterTasks);
-    
+
     // Check for stored filter on mount
     const storedFilter = sessionStorage.getItem("taskFilter");
     if (storedFilter) {
@@ -92,21 +111,30 @@ export default function TaskList() {
     setTasks(prevTasks => [...prevTasks, newTask]);
   };
 
-  const handleTaskUpdate = (taskId, newStatus) => {
-    setTasks(prevTasks => 
-      prevTasks.map(t => 
-        t.task_id === taskId ? { ...t, status: newStatus } : t
-      )
-    );
-    // Update selected task if it's open
-    if (selectedTask?.task_id === taskId) {
-      setSelectedTask(prev => ({ ...prev, status: newStatus }));
+  const handleTaskUpdate = async (taskId, newStatus) => {
+    try {
+      await api.put(`/tasks/${taskId}`, { status: newStatus });
+      setTasks(prevTasks =>
+        prevTasks.map(t =>
+          t.task_id === taskId ? { ...t, status: newStatus } : t
+        )
+      );
+      // Update selected task if it's open
+      if (selectedTask?.task_id === taskId) {
+        setSelectedTask(prev => ({ ...prev, status: newStatus }));
+      }
+    } catch (error) {
+      console.error("Failed to update task", error);
     }
   };
 
   const visibleTasks = useMemo(() => {
     if (!currentUser) return [];
+
+    // If backend already filters by role, we might just return all tasks. 
+    // But assuming receiving all tasks for now, or just filtering on client side for safety/UI logic.
     const role = (currentUser.role || "").toUpperCase();
+
     // helper: treat anything containing completion keywords as inactive
     const isActiveStatus = (status) => {
       if (!status) return false;
@@ -150,9 +178,9 @@ export default function TaskList() {
   if (!currentUser) return <Typography sx={{ p: 3, color: 'white' }}>Please login.</Typography>;
 
   return (
-    <Box sx={{ 
-      display: 'flex', 
-      flexDirection: 'column', 
+    <Box sx={{
+      display: 'flex',
+      flexDirection: 'column',
       height: '100%',
       width: '100%',
       overflow: 'hidden',
@@ -407,8 +435,8 @@ export default function TaskList() {
           >
             {visibleTasks.map((t) => (
               (() => {
-                const assignedName = usersById.get(t.assigned_to_id)?.username ?? t.assigned_to_id;
-                const assignerName = usersById.get(t.assigned_by_id)?.username ?? t.assigned_by_id;
+                const assignedName = usersMap.get(t.assigned_to_id)?.username ?? t.assigned_to_id;
+                const assignerName = usersMap.get(t.assigned_by_id)?.username ?? t.assigned_by_id;
                 return (
                   <Box key={t.task_id} sx={{ display: 'flex' }}>
                     {/* --- INDIVIDUAL GLASS CARD --- */}
@@ -450,10 +478,10 @@ export default function TaskList() {
                         </Box>
 
                         {/* Main Title */}
-                        <Typography 
-                          variant="h6" 
-                          fontWeight="700" 
-                          sx={{ 
+                        <Typography
+                          variant="h6"
+                          fontWeight="700"
+                          sx={{
                             mb: 1.5,
                             lineHeight: 1.3,
                             height: '3.9rem',

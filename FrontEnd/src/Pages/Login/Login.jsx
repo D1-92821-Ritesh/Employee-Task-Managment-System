@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import "./Login.css";
 import PrimaryBtn from "../../components/Button/PrimaryBtn";
-import { USER } from "../../data/mockData";
+import api from "../../services/api";
 
 
 export function Login() {
@@ -20,36 +20,35 @@ export function Login() {
 
     setLoading(true);
 
-    //---------------------- API call------------------------
-    /*
-    
-    const response = await axios.post('/api/login', {
-      
-    })
+    try {
+      const response = await api.post("/auth/login", {
+        username: username.trim(),
+        password: password,
+      });
 
-    */
-   const user = USER.find((u)=> u.username === username.trim() && u.password_hash === password);
-    if (user) {
-      toast.success("Login successful!");
-      localStorage.setItem("user", JSON.stringify(user));
+      const user = response.data;
 
-      if (user.role === "ADMIN") navigate("/admin");
-      else if (user.role === "MANAGER") navigate("/manager");
-      else if(user.role === "EMPLOYEE") navigate("/employee");
+      if (user) {
+        toast.success("Login successful!");
+        localStorage.setItem("user", JSON.stringify(user));
 
-      setUsername("");
-      setPassword("");
+        if (user.role === "ADMIN") navigate("/admin");
+        else if (user.role === "MANAGER") navigate("/manager");
+        else if (user.role === "EMPLOYEE") navigate("/employee");
 
-      //navigating to home
-      // navigate("/home");
-    } else {
-      toast.error("Invalid username or password");
+        setUsername("");
+        setPassword("");
+      }
+    } catch (error) {
+      console.error("Login error:", error);
+      toast.error(error.response?.data?.message || "Invalid username or password");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (
-      <div className="container">
+    <div className="container">
       <div className="bubbleBlue"></div>
       <div className="bubbleOrange"></div>
 

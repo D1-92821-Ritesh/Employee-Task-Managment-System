@@ -12,7 +12,8 @@ import {
   Button,
   Typography,
 } from "@mui/material";
-import { USER } from "../../data/mockData";
+import { toast } from "react-toastify";
+import api from "../../services/api";
 
 const GLASS_STYLE = {
   background: "linear-gradient(145deg, #1e293b 0%, #0f172a 100%)",
@@ -63,8 +64,23 @@ export default function CreateTaskModal({ open, onClose, onTaskCreate }) {
   });
 
   const [errors, setErrors] = useState({});
+  const [employees, setEmployees] = useState([]);
 
-  const employees = USER.filter((u) => u.role === "EMPLOYEE");
+  useEffect(() => {
+    if (open) {
+      const fetchData = async () => {
+        try {
+          // Ideally fetch only employees: api.get('/users?role=EMPLOYEE')
+          const response = await api.get("/users");
+          setEmployees(response.data.filter(u => u.role === "EMPLOYEE"));
+        } catch (error) {
+          console.error("Failed to fetch employees", error);
+        }
+      };
+      fetchData();
+    }
+  }, [open]);
+
   const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
 
   const handleInputChange = (e) => {
@@ -94,27 +110,32 @@ export default function CreateTaskModal({ open, onClose, onTaskCreate }) {
     return newErrors;
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const newErrors = validateForm();
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       return;
     }
 
-    const newTask = {
-      task_id: Math.floor(Math.random() * 100000),
-      title: formData.title,
-      description: formData.description,
-      priority: formData.priority,
-      status: "TO_DO",
-      assigned_to_id: parseInt(formData.assigned_to_id),
-      assigned_by_id: parseInt(currentUser.user_id),
-      created_at: new Date().toISOString().split("T")[0],
-      due_date: formData.due_date,
-    };
+    try {
+      const newTaskPayload = {
+        title: formData.title,
+        description: formData.description,
+        priority: formData.priority,
+        status: "TO_DO",
+        assigned_to_id: parseInt(formData.assigned_to_id),
+        assigned_by_id: parseInt(currentUser.user_id),
+        due_date: formData.due_date,
+      };
 
-    onTaskCreate(newTask);
-    handleClose();
+      const response = await api.post("/tasks", newTaskPayload);
+      toast.success("Task created successfully!");
+      onTaskCreate(response.data);
+      handleClose();
+    } catch (error) {
+      console.error("Failed to create task", error);
+      toast.error("Failed to create task");
+    }
   };
 
   const handleClose = () => {

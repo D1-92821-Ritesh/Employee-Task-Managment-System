@@ -33,7 +33,7 @@ import {
   Scatter,
 } from "recharts";
 
-import { TASK, USER } from "../../data/mockData";
+import api from "../../services/api";
 
 /* --------------------------------------------------------------------
    THEME: glass / compact styles (shared)
@@ -87,7 +87,7 @@ function weekKey(date) {
   const week = Math.floor(
     (Date.UTC(year, d.getMonth(), d.getDate()) -
       Date.UTC(year, 0, 1)) /
-      (24 * 60 * 60 * 1000 * 7)
+    (24 * 60 * 60 * 1000 * 7)
   );
   return `${year}-W${week}`;
 }
@@ -512,6 +512,28 @@ export default function Dashboard() {
     }
   }, []);
 
+  const [tasks, setTasks] = useState([]);
+  const [users, setUsers] = useState([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [tasksRes, usersRes] = await Promise.all([
+          api.get("/tasks"),
+          api.get("/users")
+        ]);
+        setTasks(tasksRes.data);
+        setUsers(usersRes.data);
+      } catch (error) {
+        console.error("Dashboard fetch error", error);
+      }
+    };
+    if (currentUser) {
+      fetchData();
+    }
+  }, [currentUser]);
+
+
   if (!currentUser) {
     return (
       <Box sx={{ p: 4 }}>
@@ -526,14 +548,14 @@ export default function Dashboard() {
   const relevantTasks = useMemo(() => {
     const role = currentUser.role?.toUpperCase();
 
-    if (role === "ADMIN") return TASK;
+    if (role === "ADMIN") return tasks;
     if (role === "MANAGER")
-      return TASK.filter((t) => t.assigned_by_id === currentUser.user_id);
+      return tasks.filter((t) => t.assigned_by_id === currentUser.user_id);
     if (role === "EMPLOYEE")
-      return TASK.filter((t) => t.assigned_to_id === currentUser.user_id);
+      return tasks.filter((t) => t.assigned_to_id === currentUser.user_id);
 
     return [];
-  }, [currentUser]);
+  }, [currentUser, tasks]);
 
   /* ---------------------------------------------------------
      METRICS CALC
@@ -644,10 +666,10 @@ export default function Dashboard() {
     });
 
     return Array.from(m.entries()).map(([id, count], i) => {
-      const user = USER.find((u) => u.user_id === id);
+      const user = users.find((u) => u.user_id === id);
       return { x: count, y: i + 1, name: user ? user.username : String(id) };
     });
-  }, [relevantTasks]);
+  }, [relevantTasks, users]);
 
   /* ---------------------------------------------------------
      ADMIN - Top Managers
@@ -655,16 +677,16 @@ export default function Dashboard() {
   const topManagers = useMemo(() => {
     if (currentUser.role !== "ADMIN") return [];
 
-    return USER.filter((u) => u.role === "MANAGER")
+    return users.filter((u) => u.role === "MANAGER")
       .map((m) => {
-        const tasks = TASK.filter((t) => t.assigned_by_id === m.user_id);
-        const completed = tasks.filter((t) =>
+        const mTasks = tasks.filter((t) => t.assigned_by_id === m.user_id);
+        const completed = mTasks.filter((t) =>
           (t.status || "").toLowerCase().includes("complete")
         ).length;
-        return { name: m.username, completed, total: tasks.length };
+        return { name: m.username, completed, total: mTasks.length };
       })
       .sort((a, b) => b.completed - a.completed);
-  }, [currentUser]);
+  }, [currentUser, users, tasks]);
 
   /* ---------------------------------------------------------
      KPI CLICK → navigate & filter tasks

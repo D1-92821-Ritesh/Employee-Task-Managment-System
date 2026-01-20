@@ -16,7 +16,8 @@ import {
   Select,
   MenuItem,
 } from "@mui/material";
-import { USER } from "../../data/mockData";
+import { toast } from "react-toastify";
+import api from "../../services/api";
 import { FiEdit2, FiTrash2, FiPlus } from "react-icons/fi";
 
 const GLASS_STYLE = {
@@ -264,16 +265,29 @@ export default function EmployeesSection() {
   const isAdmin = currentUser?.role === "ADMIN";
   const isManager = currentUser?.role === "MANAGER";
 
-  const [employees, setEmployees] = useState(() =>
-    USER.map((u) => ({
-      ...u,
-      department: u.department || "General",
-      status: u.status || "ACTIVE",
-    }))
-  );
-
+  const [employees, setEmployees] = useState([]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState(null);
+
+  const fetchEmployees = async () => {
+    try {
+      const response = await api.get("/users");
+      setEmployees(response.data.map(u => ({
+        ...u,
+        department: u.department || "General",
+        status: u.status || "ACTIVE",
+      })));
+    } catch (error) {
+      console.error("Error fetching employees:", error);
+      // toast.error("Failed to load employees."); // Optional: Don't spam toasts on load
+    }
+  };
+
+  useEffect(() => {
+    if (currentUser) {
+      fetchEmployees();
+    }
+  }, [currentUser]);
 
   const managers = useMemo(
     () => employees.filter((e) => e.role === "MANAGER"),
@@ -306,9 +320,18 @@ export default function EmployeesSection() {
 
   // ---- ACTIONS ----
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if (!isAdmin) return;
-    setEmployees((prev) => prev.filter((e) => e.user_id !== id));
+    if (window.confirm("Are you sure you want to delete this employee?")) {
+      try {
+        await api.delete(`/users/${id}`);
+        toast.success("Employee deleted successfully");
+        fetchEmployees();
+      } catch (error) {
+        console.error(error);
+        toast.error("Failed to delete employee");
+      }
+    }
   };
 
   const handleOpenAdd = () => {
@@ -327,39 +350,26 @@ export default function EmployeesSection() {
     setDialogOpen(false);
   };
 
-  const handleSaveFromDialog = (form) => {
-    setEmployees((prev) => {
+  const handleSaveFromDialog = async (form) => {
+    try {
       if (form.user_id) {
         // EDIT EXISTING
-        return prev.map((e) =>
-          e.user_id === form.user_id
-            ? {
-                ...e,
-                username: form.username,
-                role: form.role,
-                department: form.department,
-                status: form.status,
-                manager_id: form.manager_id || null,
-              }
-            : e
-        );
+        await api.put(`/users/${form.user_id}`, form);
+        toast.success("Employee updated successfully");
       } else {
         // ADD NEW
-        const maxId = prev.reduce((m, e) => Math.max(m, e.user_id), 0);
-        const newEmp = {
-          user_id: maxId + 1,
-          username: form.username,
-          password_hash: "password123",
-          role: form.role,
-          manager_id: form.manager_id || null,
-          department: form.department,
-          status: form.status,
-        };
-        return [...prev, newEmp];
+        await api.post("/users", {
+          ...form,
+          password_hash: "password123", // Default password
+        });
+        toast.success("Employee created successfully");
       }
-    });
-
-    setDialogOpen(false);
+      fetchEmployees();
+      setDialogOpen(false);
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to save employee");
+    }
   };
 
   if (!currentUser) {
@@ -534,14 +544,14 @@ export default function EmployeesSection() {
                       emp.role === "ADMIN"
                         ? "rgba(239,68,68,0.2)"
                         : emp.role === "MANAGER"
-                        ? "rgba(59,130,246,0.2)"
-                        : "rgba(34,197,94,0.2)",
+                          ? "rgba(59,130,246,0.2)"
+                          : "rgba(34,197,94,0.2)",
                     color:
                       emp.role === "ADMIN"
                         ? "#fca5a5"
                         : emp.role === "MANAGER"
-                        ? "#93c5fd"
-                        : "#86efac",
+                          ? "#93c5fd"
+                          : "#86efac",
                     fontWeight: 700,
                     border: "1px solid rgba(255,255,255,0.2)",
                     backdropFilter: "blur(8px)",

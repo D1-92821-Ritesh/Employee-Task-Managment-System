@@ -4,33 +4,64 @@ import {
   Modal,
   Divider
 } from "@mui/material";
-import { USER, COMMENT } from "../../data/mockData";
+import api from "../../services/api";
 import TaskHeader from "./TaskDetailModal/TaskHeader";
 import TaskDetails from "./TaskDetailModal/TaskDetails";
 import CommentsSection from "./TaskDetailModal/CommentsSection";
 
 export default function TaskDetailModal({ task, open, onClose, currentUser, onTaskUpdate }) {
   const [newComment, setNewComment] = useState("");
-  const [comments, setComments] = useState(COMMENT);
+  const [comments, setComments] = useState([]);
+  const [usersById, setUsersById] = useState(new Map());
 
-  const usersById = useMemo(() => {
-    const map = new Map();
-    USER.forEach((u) => map.set(u.user_id, u));
-    return map;
+  // Fetch users once
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const response = await api.get("/users");
+        const map = new Map();
+        response.data.forEach((u) => map.set(u.user_id, u));
+        setUsersById(map);
+      } catch (error) {
+        console.error("Failed to fetch users in Detail Modal", error);
+      }
+    };
+    fetchUsers();
   }, []);
 
-  const taskComments = task ? comments.filter((c) => c.task_id === task.task_id) : [];
-
-  const handleAddComment = () => {
-    if (newComment.trim() && task) {
-      const newCommentObj = {
-        comment_id: Math.max(...comments.map(c => c.comment_id), 0) + 1,
-        task_id: task.task_id,
-        user_id: currentUser.user_id,
-        content: newComment
+  // Fetch comments when task changes
+  useEffect(() => {
+    if (task) {
+      const fetchComments = async () => {
+        try {
+          const response = await api.get(`/tasks/${task.task_id}/comments`);
+          setComments(response.data);
+        } catch (error) {
+          console.error("Error fetching comments", error);
+        }
       };
-      setComments([...comments, newCommentObj]);
-      setNewComment("");
+      fetchComments();
+    } else {
+      setComments([]);
+    }
+  }, [task]);
+
+  const handleAddComment = async () => {
+    if (newComment.trim() && task) {
+      try {
+        const payload = {
+          content: newComment,
+          user_id: currentUser.user_id,
+          task_id: task.task_id
+        };
+        const response = await api.post(`/tasks/${task.task_id}/comments`, payload);
+
+        // Optimistically add or fetch again. Using response data assuming it returns the comment.
+        setComments([...comments, response.data]);
+        setNewComment("");
+      } catch (error) {
+        console.error("Failed to add comment", error);
+      }
     }
   };
 
@@ -66,9 +97,9 @@ export default function TaskDetailModal({ task, open, onClose, currentUser, onTa
           color: 'white',
           position: 'relative',
           scrollbarWidth: "none",          // Firefox
-        "&::-webkit-scrollbar": {
-          display: "none",              // Chrome, Safari
-        }
+          "&::-webkit-scrollbar": {
+            display: "none",              // Chrome, Safari
+          }
         }}
       >
         {task && (
@@ -83,7 +114,7 @@ export default function TaskDetailModal({ task, open, onClose, currentUser, onTa
 
             {/* Comments Section */}
             <CommentsSection
-              comments={taskComments}
+              comments={comments}
               usersById={usersById}
               newComment={newComment}
               onCommentChange={setNewComment}
