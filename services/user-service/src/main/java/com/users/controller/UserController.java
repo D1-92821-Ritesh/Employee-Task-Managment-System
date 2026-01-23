@@ -4,7 +4,9 @@ import com.users.dto.UserCreateDTO;
 import com.users.dto.UserResponseDTO;
 import com.users.dto.UserUpdateDTO;
 import com.users.service.UserService;
+import jakarta.validation.Valid; // Import for Validation
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,59 +20,43 @@ public class UserController {
     @Autowired
     private UserService userService;
 
+    // Get all users
     @GetMapping
-    public List<UserResponseDTO> getAll() {
-        return userService.getAllUsers();
+    public ResponseEntity<List<UserResponseDTO>> getAll() {
+        return ResponseEntity.ok(userService.getAllUsers());
     }
 
+    // Get user by ID (Exception handled globally if not found)
     @GetMapping("/{id}")
     public ResponseEntity<UserResponseDTO> getById(@PathVariable Long id) {
-        UserResponseDTO user = userService.getUserById(id);
-        if (user != null) return ResponseEntity.ok(user);
-        return ResponseEntity.notFound().build();
+        return ResponseEntity.ok(userService.getUserById(id));
     }
 
+    // Create user 
     @PostMapping
-    public UserResponseDTO create(@RequestBody UserCreateDTO userDto) {
-        return userService.createUser(userDto);
+    public ResponseEntity<UserResponseDTO> create(@Valid @RequestBody UserCreateDTO userDto) {
+        UserResponseDTO createdUser = userService.createUser(userDto);
+        return new ResponseEntity<>(createdUser, HttpStatus.CREATED);
     }
     
- 
+    // Update user
+    @PutMapping("/{id}")
+    public ResponseEntity<UserResponseDTO> updateUser(@PathVariable Long id, 
+                                                      @Valid @RequestBody UserUpdateDTO userDto) {
+        UserResponseDTO updatedUser = userService.updateUser(id, userDto);
+        return ResponseEntity.ok(updatedUser);
+    }
+    
+    // Soft Delete user
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteUser(@PathVariable Long id) {
-        boolean isDeleted = userService.deleteUser(id);
-        
-        if (isDeleted) {
-            return ResponseEntity.ok("User deleted successfully (Soft Delete)");
-        } else {
-            return ResponseEntity.status(404).body("User not found");
-        }
+        userService.deleteUser(id);
+        return ResponseEntity.ok("User deleted successfully (Soft Delete)");
     }
     
-    @PutMapping("/{id}")
-    public ResponseEntity<String> updateUser(@PathVariable Long id, @RequestBody UserUpdateDTO userDto) {
-    	boolean updated = userService.updateUser(id, userDto);
-        if (updated) {
-            return ResponseEntity.ok("User updated successfully");
-        }
-        return ResponseEntity.badRequest().body("User not found");
-    }
-    
+    // Get users by Manager ID
     @GetMapping("/manager/{managerId}")
-    public List<UserResponseDTO> getByManager(@PathVariable Long managerId) {
-        return userService.getUsersByManager(managerId);
+    public ResponseEntity<List<UserResponseDTO>> getByManager(@PathVariable Long managerId) {
+        return ResponseEntity.ok(userService.getUsersByManager(managerId));
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-

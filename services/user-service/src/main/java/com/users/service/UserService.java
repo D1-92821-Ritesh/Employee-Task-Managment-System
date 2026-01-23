@@ -4,7 +4,9 @@ import com.users.dto.UserCreateDTO;
 import com.users.dto.UserResponseDTO;
 import com.users.dto.UserUpdateDTO;
 import com.users.entity.User;
+import com.users.exception.ResourceNotFoundException;
 import com.users.repository.UserRepository;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -17,90 +19,69 @@ public class UserService {
     @Autowired
     private UserRepository repository;
 
-    // Get all employees (Returning DTOs)
+    @Autowired
+    private ModelMapper modelMapper;
+
+    // Get all employees
     public List<UserResponseDTO> getAllUsers() {
         return repository.findAll().stream()
-                .map(this::mapToResponse) // calling local helper method
+                .map(user -> modelMapper.map(user, UserResponseDTO.class))
                 .collect(Collectors.toList());
     }
 
-    // Get single employee (returning DTO)
+    // Get single employee (Throws Exception if not found)
     public UserResponseDTO getUserById(Long id) {
-        User user = repository.findById(id).orElse(null);
-        if (user == null) return null;
-        return mapToResponse(user);
+        User user = repository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
+        
+        return modelMapper.map(user, UserResponseDTO.class);
     }
 
-    // Create employee (accepting DTO, returning DTO)
+    // Create employee
     public UserResponseDTO createUser(UserCreateDTO createDto) {
-        // converting userDTO to userEntity 
-        User user = new User();
-        user.setFirstName(createDto.getFirstName());
-        user.setLastName(createDto.getLastName());
-        user.setEmail(createDto.getEmail());
-        user.setRole(createDto.getRole());
-        user.setDepartment(createDto.getDepartment());
-        user.setManagerId(createDto.getManagerId());
+        // Auto-map DTO to Entity
+        User user = modelMapper.map(createDto, User.class);
+        
+        // Set default values logic
         user.setStatus(true); 
 
+        // Save to DB
         User savedUser = repository.save(user);
-        return mapToResponse(savedUser);
+        
+        // Return Response DTO
+        return modelMapper.map(savedUser, UserResponseDTO.class);
     }
     
-    // update User (accepting ID and UpdateDTO)
-    public boolean updateUser(Long id, UserUpdateDTO updateDto) {
-        User existingUser = repository.findById(id).orElse(null);
+    // Update User (Throws Exception if not found)
+    public UserResponseDTO updateUser(Long id, UserUpdateDTO updateDto) {
+        User existingUser = repository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
         
-        //if user exists
-        if (existingUser != null) {
-            
-            if(updateDto.getFirstName() != null) existingUser.setFirstName(updateDto.getFirstName());
-            if(updateDto.getLastName() != null) existingUser.setLastName(updateDto.getLastName());
-            if(updateDto.getEmail() != null) existingUser.setEmail(updateDto.getEmail());
-            if(updateDto.getRole() != null) existingUser.setRole(updateDto.getRole());
-            if(updateDto.getDepartment() != null) existingUser.setDepartment(updateDto.getDepartment());
-            if(updateDto.getManagerId() != null) existingUser.setManagerId(updateDto.getManagerId());
-            if(updateDto.getStatus() != null) existingUser.setStatus(updateDto.getStatus());
+        // ModelMapper magically updates only the fields that are NOT null in the DTO
+        // (Assumes you set 'skipNullEnabled(true)' in your MapperConfig)
+        modelMapper.map(updateDto, existingUser);
 
-            repository.save(existingUser);
-            return true;
-        }
-        return false;
-    }
-    
-    public boolean deleteUser(Long id) {
-        User user = repository.findById(id).orElse(null);
+        User updatedUser = repository.save(existingUser);
         
-        if (user != null) {
-            user.setStatus(false); // Soft Delete
-            repository.save(user); // Update the record
-            return true;
-        }
-        return false;
+        return modelMapper.map(updatedUser, UserResponseDTO.class);
     }
     
-    // Get by manager
+    // Soft Delete User (Throws Exception if not found)
+    public void deleteUser(Long id) {
+        User user = repository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
+        
+        // Soft delete logic
+        user.setStatus(false);
+        repository.save(user);
+    }
+    
+    // Get by manager (Only Active Users)
     public List<UserResponseDTO> getUsersByManager(Long managerId) {
+        // Fetch only active users under this manager
         return repository.findByManagerIdAndStatus(managerId, true).stream()
-                .map(this::mapToResponse)
+                .map(user -> modelMapper.map(user, UserResponseDTO.class))
                 .collect(Collectors.toList());
-    }
-
-    
-    // Convert Entity -> DTO
-    private UserResponseDTO mapToResponse(User user) {
-        UserResponseDTO dto = new UserResponseDTO();
-        dto.setId(user.getId());
-        dto.setFirstName(user.getFirstName());
-        dto.setLastName(user.getLastName());
-        dto.setEmail(user.getEmail());
-        dto.setRole(user.getRole());
-        dto.setStatus(user.isStatus());
-        dto.setDepartment(user.getDepartment());
-        dto.setManagerId(user.getManagerId());
-        dto.setCreateOn(user.getCreateOn());
-        dto.setUpdatedOn(user.getUpdatedOn());
-        return dto;
     }
 }
 
