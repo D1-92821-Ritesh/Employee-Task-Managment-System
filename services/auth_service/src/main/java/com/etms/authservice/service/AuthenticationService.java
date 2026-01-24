@@ -27,7 +27,6 @@ public class AuthenticationService {
 
         public String register(AuthDto.RegisterRequest request) {
                 var user = Users.builder()
-                                .id(request.getId())
                                 .firstName(request.getFirstName())
                                 .email(request.getEmail())
                                 .passwordHash(passwordEncoder.encode(request.getPassword()))
@@ -63,5 +62,10 @@ public class AuthenticationService {
                                 .firstName(user.getFirstName())
                                 .role(user.getRole().name())
                                 .build();
+        }
+        public void deleteUser(String email) {
+                var user = repository.findByEmail(email)
+                        .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+                repository.delete(user);
         }
 }

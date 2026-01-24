@@ -1,0 +1,88 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      routes:
+        # --- SWAGGER DOC ROUTES (Strip Prefix) ---
+        - id: auth-service-docs
+          uri: ${AUTH_SERVICE_URI:http://localhost:8081}
+          predicates:
+            - Path=/api/auth/v3/api-docs
+          filters:
+            - SetPath=/v3/api-docs
+
+        - id: user-service-docs
+          uri: ${USER_SERVICE_URI:http://localhost:8082}
+          predicates:
+            - Path=/api/users/v3/api-docs
+          filters:
+            - SetPath=/v3/api-docs
+
+        - id: task-service-docs
+          uri: ${TASK_SERVICE_URI:http://localhost:8083}
+          predicates:
+            - Path=/api/tasks/swagger/**
+          filters:
+            - RewritePath=/api/tasks/(?<segment>.*), /${segment}
+
+        # --- API ROUTES (Preserve Prefix) ---
+        # Auth Service Routes (PUBLIC)
+        - id: auth-service
+          uri: ${AUTH_SERVICE_URI:http://localhost:8081}
+          predicates:
+            - Path=/api/auth/**
+          filters:
+            - RewritePath=/api/auth/(?<segment>.*), /api/auth/${segment}
+        
+        # User Service Routes (PROTECTED)
+        - id: user-service
+          uri: ${USER_SERVICE_URI:http://localhost:8082}
+          predicates:
+            - Path=/api/users/**
+          filters:
+            - RewritePath=/api/users/(?<segment>.*), /api/users/${segment}
+        
+        # Task Service Routes (PROTECTED)
+        - id: task-service
+          uri: ${TASK_SERVICE_URI:http://localhost:8083}
+          predicates:
+            - Path=/api/tasks/**
+          filters:
+            - RewritePath=/api/tasks/(?<segment>.*), /api/tasks/${segment}
+      
+      # Global CORS configuration
+      globalcors:
+        corsConfigurations:
+          '[/**]':
+            allowedOrigins: "*"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+            allowedHeaders: "*"
+            allowCredentials: false
+
+# JWT Configuration (must match auth-service)
+jwt:
+  secret: K7gNU3ke59D1Z3Yv2Xj6M4qW8L0pB5nI7rE9aF1sT4o
+
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG
+    org.springframework.security: DEBUG
+
+springdoc:
+  swagger-ui:
+    urls:
+      - name: Auth Service
+        url: /api/auth/v3/api-docs
+      - name: User Service
+        url: /api/users/v3/api-docs
+      - name: Task Service
+        url: /api/tasks/swagger/v1/swagger.json

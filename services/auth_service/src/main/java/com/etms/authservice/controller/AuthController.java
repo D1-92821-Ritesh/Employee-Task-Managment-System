@@ -22,4 +22,10 @@ public class AuthController {
     public ResponseEntity<AuthDto.AuthResponse> authenticate(@RequestBody AuthDto.LoginRequest request) {
         return ResponseEntity.ok(authService.authenticate(request));
     }
+
+    @DeleteMapping("/users/{email}")
+    public ResponseEntity<String> deleteUser(@PathVariable String email) {
+        authService.deleteUser(email);
+        return ResponseEntity.ok("User deleted successfully");
+    }
 }

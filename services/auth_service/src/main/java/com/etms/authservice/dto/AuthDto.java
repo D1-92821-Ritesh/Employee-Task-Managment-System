@@ -13,7 +13,6 @@ public class AuthDto {
     @AllArgsConstructor
     @NoArgsConstructor
     public static class RegisterRequest {
-        private Long id;
         private String firstName;
         private String email;
         private String password;
