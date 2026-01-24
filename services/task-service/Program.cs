@@ -3,6 +3,7 @@ using Microsoft.OpenApi.Models;
 using TaskService.Data;
 using TaskService.Messaging;
 using TaskService.Services;
+using Steeltoe.Discovery.Client;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,6 +13,9 @@ builder.Services.AddDbContext<TaskDbContext>(options =>
 
 // Register RabbitMQ settings
 builder.Services.Configure<RabbitMQSettings>(builder.Configuration.GetSection("RabbitMQ"));
+
+// Register Discovery Client
+builder.Services.AddDiscoveryClient(builder.Configuration);
 
 // Register Services
 builder.Services.AddScoped<ITaskService, TaskServiceImpl>();
@@ -39,6 +43,18 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
+// Add CORS
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll",
+        builder =>
+        {
+            builder.AllowAnyOrigin()
+                   .AllowAnyMethod()
+                   .AllowAnyHeader();
+        });
+});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline
@@ -53,6 +69,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseCors("AllowAll");
 app.UseAuthorization();
 app.MapControllers();
 

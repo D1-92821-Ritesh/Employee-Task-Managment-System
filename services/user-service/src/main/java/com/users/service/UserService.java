@@ -8,6 +8,7 @@ import com.users.entity.User;
 import com.users.exception.ResourceNotFoundException;
 import com.users.repository.UserRepository;
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,16 +19,14 @@ import java.util.stream.Collectors;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class UserService {
 
-    @Autowired
-    private UserRepository repository;
+    private final UserRepository repository;
 
-    @Autowired
-    private ModelMapper modelMapper;
+    private final ModelMapper modelMapper;
 
-    @Autowired
-    private AuthServiceClient authServiceClient;
+    private final AuthServiceClient authServiceClient;
 
     // Get all employees
     public List<UserResponseDTO> getAllUsers() {
