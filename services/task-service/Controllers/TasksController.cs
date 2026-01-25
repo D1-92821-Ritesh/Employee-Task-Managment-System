@@ -59,6 +59,5 @@ public class TasksController : ControllerBase
         if (task == null)
             return NotFound(new { message = $"Task with ID {id} not found" });
         return Ok(task);
-        return Ok(task);
     }
 }

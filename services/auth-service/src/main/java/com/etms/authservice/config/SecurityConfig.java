@@ -21,7 +21,6 @@ public class SecurityConfig {
 
     private final AuthenticationProvider authenticationProvider;
 
-    // swagger included
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         // noinspection Convert2MethodRef

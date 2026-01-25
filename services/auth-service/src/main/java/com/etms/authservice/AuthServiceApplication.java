@@ -23,7 +23,6 @@ public class AuthServiceApplication {
 						.role(com.etms.authservice.model.Role.ADMIN)
 						.build();
 				repository.save(admin);
-				System.out.println("Default Admin seeded: admin@etms.com");
 			}
 		};
 	}
