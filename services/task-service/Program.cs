@@ -39,17 +39,7 @@ public class Program
                 options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
             });
 
-        // Add CORS
-        builder.Services.AddCors(options =>
-        {
-            options.AddPolicy("AllowAll",
-                builder =>
-                {
-                    builder.AllowAnyOrigin()
-                           .AllowAnyMethod()
-                           .AllowAnyHeader();
-                });
-        });
+
 
         var app = builder.Build();
 
@@ -60,7 +50,6 @@ public class Program
         }
 
         app.UseHttpsRedirection();
-        app.UseCors("AllowAll");
         app.UseAuthorization();
         app.MapControllers();
 
