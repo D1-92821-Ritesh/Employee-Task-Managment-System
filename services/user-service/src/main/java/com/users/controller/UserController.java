@@ -14,7 +14,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/users")
-@CrossOrigin(origins = "*") 
 public class UserController {
 
     @Autowired
@@ -32,28 +31,28 @@ public class UserController {
         return ResponseEntity.ok(userService.getUserById(id));
     }
 
-    // Create user 
+    // Create user
     @PostMapping
     public ResponseEntity<UserResponseDTO> create(@Valid @RequestBody UserCreateDTO userDto) {
         UserResponseDTO createdUser = userService.createUser(userDto);
         return new ResponseEntity<>(createdUser, HttpStatus.CREATED);
     }
-    
+
     // Update user
     @PutMapping("/{id}")
-    public ResponseEntity<UserResponseDTO> updateUser(@PathVariable Long id, 
-                                                      @Valid @RequestBody UserUpdateDTO userDto) {
+    public ResponseEntity<UserResponseDTO> updateUser(@PathVariable Long id,
+            @Valid @RequestBody UserUpdateDTO userDto) {
         UserResponseDTO updatedUser = userService.updateUser(id, userDto);
         return ResponseEntity.ok(updatedUser);
     }
-    
+
     // Soft Delete user
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteUser(@PathVariable Long id) {
         userService.deleteUser(id);
         return ResponseEntity.ok("User deleted successfully (Soft Delete)");
     }
-    
+
     // Get users by Manager ID
     @GetMapping("/manager/{managerId}")
     public ResponseEntity<List<UserResponseDTO>> getByManager(@PathVariable Long managerId) {

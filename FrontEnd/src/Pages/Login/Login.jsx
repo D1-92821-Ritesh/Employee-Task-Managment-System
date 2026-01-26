@@ -22,7 +22,7 @@ export function Login() {
 
     try {
       const response = await api.post("/auth/login", {
-        username: username.trim(),
+        email: username.trim(),
         password: password,
       });
 
