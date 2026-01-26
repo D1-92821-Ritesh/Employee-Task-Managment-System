@@ -5,7 +5,7 @@ using TaskService.Services;
 namespace TaskService.Controllers;
 
 [ApiController]
-[Route("api/tasks/{taskId:int}/[controller]")]
+[Route("api/tasks/{taskId:int}/comments")]
 [Produces("application/json")]
 public class CommentsController : ControllerBase
 {

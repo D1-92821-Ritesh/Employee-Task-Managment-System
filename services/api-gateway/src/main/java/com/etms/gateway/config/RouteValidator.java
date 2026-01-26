@@ -12,7 +12,6 @@ public class RouteValidator {
 
     // Public endpoints that don't require authentication
     public static final List<String> PUBLIC_ENDPOINTS = List.of(
-            "/api/auth/register",
             "/api/auth/login");
 
     // Role-based access control rules
@@ -20,22 +19,23 @@ public class RouteValidator {
     public static final Map<String, List<String>> ROLE_ACCESS_RULES = Map.ofEntries(
             // User Service endpoints
             Map.entry("GET:/api/users", List.of("ADMIN")),
+            Map.entry("GET:/api/users/{id}", List.of("ADMIN", "MANAGER")),
             Map.entry("POST:/api/users", List.of("ADMIN")),
-            Map.entry("DELETE:/api/users/", List.of("ADMIN")),
+            Map.entry("GET:/api/users/manager/{managerId}", List.of("ADMIN", "MANAGER")),
+            Map.entry("PUT:/api/users/{id}", List.of("ADMIN")),
+            Map.entry("DELETE:/api/users/{id}", List.of("ADMIN")),
 
             // Auth Service management
-            Map.entry("DELETE:/api/auth/users/", List.of("ADMIN")),
+            Map.entry("DELETE:/api/auth/users/{email}", List.of("ADMIN")),
 
             // Task Service endpoints
-            Map.entry("POST:/api/tasks", List.of("MANAGER")),
-            Map.entry("GET:/api/tasks", List.of("MANAGER", "EMPLOYEE")),
-            Map.entry("PUT:/api/tasks/{id}", List.of("MANAGER")),
-            Map.entry("DELETE:/api/tasks/{id}", List.of("MANAGER")),
-            Map.entry("PATCH:/api/tasks/{id}/status", List.of("MANAGER", "EMPLOYEE")),
+            Map.entry("POST:/api/tasks", List.of("MANAGER", "ADMIN")),
+            Map.entry("GET:/api/tasks", List.of("MANAGER", "EMPLOYEE", "ADMIN")),
+            Map.entry("PUT:/api/tasks/{id}", List.of("MANAGER", "EMPLOYEE", "ADMIN")),
 
             // Comments
-            Map.entry("POST:/api/tasks/{id}/comments", List.of("MANAGER", "EMPLOYEE")),
-            Map.entry("PUT:/api/tasks/{id}/comments/{cid}", List.of("MANAGER", "EMPLOYEE")));
+            Map.entry("POST:/api/tasks/{id}/comments", List.of("MANAGER", "EMPLOYEE", "ADMIN")),
+            Map.entry("PUT:/api/tasks/{id}/comments/{cid}", List.of("MANAGER", "EMPLOYEE", "ADMIN")));
 
     public Predicate<ServerHttpRequest> isSecured = request -> PUBLIC_ENDPOINTS.stream()
             .noneMatch(uri -> request.getURI().getPath().contains(uri));

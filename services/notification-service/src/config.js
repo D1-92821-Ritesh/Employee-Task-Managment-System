@@ -2,7 +2,7 @@ require('dotenv').config();
 
 module.exports = {
   rabbitmq: {
-    url: process.env.RABBITMQ_URL || 'amqp://guest:guest@127.0.0.1:5672',
+    url: process.env.RABBITMQ_URL || 'amqp://user:pass@localhost:5672',
     exchange: 'task.exchange',
     queue: 'task.notifications',
     routingKey: 'task.assigned',

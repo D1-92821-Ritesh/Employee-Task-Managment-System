@@ -35,8 +35,8 @@ async function sendTaskAssignedEmail(notification) {
             text: `You have been assigned a new task: ${TaskTitle} (ID: ${TaskId}). Created at: ${CreatedAt}`,
             html: `<p>You have been assigned a new task: <b>${TaskTitle}</b> (ID: ${TaskId})</p><p>Created at: ${CreatedAt}</p>`,
         });
-    } catch {
-        // Silently ignore email errors
+    } catch (error) {
+        console.log("Email not sent:", error);
     }
 }
 

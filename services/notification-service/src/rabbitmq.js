@@ -22,8 +22,8 @@ async function startConsumer() {
                     const notification = JSON.parse(content);
                     await emailService.sendTaskAssignedEmail(notification);
                     channel.ack(msg);
-                } catch {
-                    // Silently ignore processing errors
+                } catch (error) {
+                    console.log("Email not sent from consumer:", error);
                 }
             }
         });

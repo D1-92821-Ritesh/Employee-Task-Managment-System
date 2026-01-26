@@ -55,9 +55,10 @@ public class RabbitMQPublisher : IMessagePublisher, IDisposable
                 exchange: _settings.ExchangeName,
                 routingKey: _settings.RoutingKey);
         }
-        catch
+        catch (Exception ex)
         {
-            // Silently ignore connection failures
+            // Log failure
+            Console.WriteLine($"RabbitMQ Connection Error: {ex.Message}");
         }
     }
 
@@ -83,9 +84,10 @@ public class RabbitMQPublisher : IMessagePublisher, IDisposable
                 basicProperties: properties,
                 body: body);
         }
-        catch
+        catch (Exception ex)
         {
-            // Silently ignore publish failures
+            // Log failure
+            Console.WriteLine($"RabbitMQ Publish Error: {ex.Message}");
         }
 
         return Task.CompletedTask;
