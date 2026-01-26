@@ -4,8 +4,8 @@ const rabbitmq = require('./src/rabbitmq');
 const eurekaClient = new Eureka({
     instance: {
         app: 'notification-service',
-        hostName: 'localhost',
-        ipAddr: '127.0.0.1',
+        hostName: process.env.INSTANCE_HOST || 'localhost',
+        ipAddr: process.env.INSTANCE_IP || '127.0.0.1',
         port: {
             '$': 3000,
             '@enabled': 'true',
