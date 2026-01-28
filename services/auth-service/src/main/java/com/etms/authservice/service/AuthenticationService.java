@@ -59,13 +59,15 @@ public class AuthenticationService {
                 var jwtToken = jwtService.generateToken(userDetails, extraClaims);
                 return AuthDto.AuthResponse.builder()
                                 .token(jwtToken)
+                                .userId(user.getId())
                                 .firstName(user.getFirstName())
                                 .role(user.getRole().name())
                                 .build();
         }
+
         public void deleteUser(String email) {
                 var user = repository.findByEmail(email)
-                        .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+                                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
                 repository.delete(user);
         }
 }

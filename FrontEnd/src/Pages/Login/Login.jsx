@@ -5,7 +5,6 @@ import "./Login.css";
 import PrimaryBtn from "../../components/Button/PrimaryBtn";
 import api from "../../services/api";
 
-
 export function Login() {
   const navigate = useNavigate();
   const [username, setUsername] = useState("");
@@ -21,20 +20,39 @@ export function Login() {
     setLoading(true);
 
     try {
-      const response = await api.post("/auth/login", {
+      // Step 1: Login to get token
+      const loginResponse = await api.post("/auth/login", {
         email: username.trim(),
         password: password,
       });
 
-      const user = response.data;
+      const authData = loginResponse.data;
 
-      if (user) {
+      if (authData && authData.token) {
+        // userId is now returned directly from the backend
+        const userId = authData.userId;
+        console.log("Login - User ID from response:", userId);
+
+        // Store complete user data with user_id
+        const fullUser = {
+          token: authData.token,
+          user_id: userId ? parseInt(userId) : null,
+          firstName: authData.firstName,
+          username: authData.firstName,
+          email: username.trim(),
+          role: authData.role,
+        };
+
+        localStorage.setItem("user", JSON.stringify(fullUser));
+        console.log("Stored user:", fullUser);
+
         toast.success("Login successful!");
-        localStorage.setItem("user", JSON.stringify(user));
 
-        if (user.role === "ADMIN") navigate("/admin");
-        else if (user.role === "MANAGER") navigate("/manager");
-        else if (user.role === "EMPLOYEE") navigate("/employee");
+        // Navigate based on role
+        if (authData.role === "ADMIN") navigate("/admin");
+        else if (authData.role === "MANAGER") navigate("/manager");
+        else if (authData.role === "EMPLOYEE") navigate("/employee");
+        else navigate("/employee"); // Default fallback
 
         setUsername("");
         setPassword("");
@@ -59,11 +77,11 @@ export function Login() {
         </div>
 
         <div className="formGroup">
-          <label htmlFor="username">Username:</label>
+          <label htmlFor="username">Email:</label>
           <input
             type="text"
             id="username"
-            placeholder="Username"
+            placeholder="Enter your email"
             className="inputField"
             value={username}
             onChange={(e) => setUsername(e.target.value)}

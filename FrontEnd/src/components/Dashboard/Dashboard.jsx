@@ -33,7 +33,7 @@ import {
   Scatter,
 } from "recharts";
 
-import api from "../../services/api";
+import api, { transformTask, transformUser } from "../../services/api";
 
 /* --------------------------------------------------------------------
    THEME: glass / compact styles (shared)
@@ -518,12 +518,15 @@ export default function Dashboard() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [tasksRes, usersRes] = await Promise.all([
-          api.get("/tasks"),
-          api.get("/users")
-        ]);
-        setTasks(tasksRes.data);
-        setUsers(usersRes.data);
+        // Fetch tasks
+        const tasksRes = await api.get("/tasks");
+        setTasks(tasksRes.data.map(transformTask));
+
+        // Only fetch users if not an EMPLOYEE (they don't have permission)
+        if (currentUser.role !== "EMPLOYEE") {
+          const usersRes = await api.get("/users");
+          setUsers(usersRes.data.map(transformUser));
+        }
       } catch (error) {
         console.error("Dashboard fetch error", error);
       }
@@ -547,12 +550,17 @@ export default function Dashboard() {
   --------------------------------------------------------- */
   const relevantTasks = useMemo(() => {
     const role = currentUser.role?.toUpperCase();
+    const userId = currentUser.user_id;
 
     if (role === "ADMIN") return tasks;
+    // Managers see tasks they assigned OR tasks assigned to them
     if (role === "MANAGER")
-      return tasks.filter((t) => t.assigned_by_id === currentUser.user_id);
+      return tasks.filter((t) =>
+        String(t.assigned_by_id) === String(userId) ||
+        String(t.assigned_to_id) === String(userId)
+      );
     if (role === "EMPLOYEE")
-      return tasks.filter((t) => t.assigned_to_id === currentUser.user_id);
+      return tasks.filter((t) => String(t.assigned_to_id) === String(userId));
 
     return [];
   }, [currentUser, tasks]);

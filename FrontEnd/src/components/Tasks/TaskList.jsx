@@ -5,13 +5,12 @@ import {
   Chip,
   Card,
   CardContent,
-  Grid,
   Stack,
   Divider,
   Button
 } from "@mui/material";
 import { FiClock, FiUser, FiPlus, FiX } from "react-icons/fi";
-import api from "../../services/api";
+import api, { transformTask, transformUser } from "../../services/api";
 import TaskDetailModal from "./TaskDetailModal";
 import CreateTaskModal from "./CreateTaskModal";
 
@@ -49,7 +48,12 @@ const getPriorityColor = (priority) => {
 
 function formatDate(dt) {
   if (!dt) return "-";
-  return dt.split(" ")[0];
+  // Handle ISO date format
+  const dateStr = String(dt);
+  if (dateStr.includes("T")) {
+    return dateStr.split("T")[0];
+  }
+  return dateStr.split(" ")[0];
 }
 
 export default function TaskList() {
@@ -73,14 +77,20 @@ export default function TaskList() {
     const fetchData = async () => {
       if (!currentUser) return;
       try {
-        const [tasksRes, usersRes] = await Promise.all([
-          api.get("/tasks"),
-          api.get("/users")
-        ]);
-        setTasks(tasksRes.data);
-        const map = new Map();
-        usersRes.data.forEach(u => map.set(u.user_id, u));
-        setUsersMap(map);
+        // Fetch tasks
+        const tasksRes = await api.get("/tasks");
+        const transformedTasks = tasksRes.data.map(transformTask);
+        setTasks(transformedTasks);
+
+        // Only fetch users if not an EMPLOYEE (they don't have permission)
+        // For employees, we'll just show IDs instead of names
+        if (currentUser.role !== "EMPLOYEE") {
+          const usersRes = await api.get("/users");
+          const transformedUsers = usersRes.data.map(transformUser);
+          const map = new Map();
+          transformedUsers.forEach(u => map.set(u.user_id, u));
+          setUsersMap(map);
+        }
       } catch (error) {
         console.error("Failed to fetch data", error);
       }
@@ -108,20 +118,57 @@ export default function TaskList() {
   }, []);
 
   const handleTaskCreate = (newTask) => {
+    // newTask is already transformed by CreateTaskModal
     setTasks(prevTasks => [...prevTasks, newTask]);
   };
 
-  const handleTaskUpdate = async (taskId, newStatus) => {
+  const handleTaskUpdate = async (taskId, newStatus, fullTask) => {
     try {
-      await api.put(`/tasks/${taskId}`, { status: newStatus });
+      // Find the task to get all required fields for update
+      const taskToUpdate = tasks.find(t => t.task_id === taskId);
+      if (!taskToUpdate) {
+        console.error("Task not found for update");
+        return;
+      }
+
+      // Map frontend status to backend enum value
+      const statusMap = {
+        'TO_DO': 0,
+        'NEW': 0,
+        'IN_PROGRESS': 1,
+        'COMPLETED': 2,
+        'COMPLETE': 2,
+        'CANCELLED': 3,
+      };
+
+      const priorityMap = {
+        'LOW': 0,
+        'MEDIUM': 1,
+        'HIGH': 2,
+      };
+
+      // Backend requires all fields for update
+      const updatePayload = {
+        Title: taskToUpdate.title,
+        Description: taskToUpdate.description || '',
+        Priority: priorityMap[taskToUpdate.priority?.toUpperCase()] ?? 1,
+        Status: statusMap[newStatus?.toUpperCase()] ?? 0,
+        AssignedToUserId: parseInt(taskToUpdate.assigned_to_id),
+        DueDate: taskToUpdate.due_date,
+      };
+
+      const response = await api.put(`/tasks/${taskId}`, updatePayload);
+      const updatedTask = transformTask(response.data);
+
       setTasks(prevTasks =>
         prevTasks.map(t =>
-          t.task_id === taskId ? { ...t, status: newStatus } : t
+          t.task_id === taskId ? updatedTask : t
         )
       );
+
       // Update selected task if it's open
       if (selectedTask?.task_id === taskId) {
-        setSelectedTask(prev => ({ ...prev, status: newStatus }));
+        setSelectedTask(updatedTask);
       }
     } catch (error) {
       console.error("Failed to update task", error);
@@ -134,6 +181,13 @@ export default function TaskList() {
     // If backend already filters by role, we might just return all tasks. 
     // But assuming receiving all tasks for now, or just filtering on client side for safety/UI logic.
     const role = (currentUser.role || "").toUpperCase();
+    const userId = currentUser.user_id;
+
+    // Debug logging
+    console.log("TaskList filter - Role:", role, "User ID:", userId, "Total tasks:", tasks.length);
+    if (tasks.length > 0) {
+      console.log("Sample task:", tasks[0]);
+    }
 
     // helper: treat anything containing completion keywords as inactive
     const isActiveStatus = (status) => {
@@ -148,27 +202,29 @@ export default function TaskList() {
       role === "ADMIN"
         ? tasks
         : role === "MANAGER"
-          ? tasks.filter((t) => t.assigned_by_id === currentUser.user_id)
+          // Managers see tasks they assigned OR tasks assigned to them
+          ? tasks.filter((t) =>
+            String(t.assigned_by_id) === String(userId) ||
+            String(t.assigned_to_id) === String(userId)
+          )
           : role === "EMPLOYEE"
-            ? tasks.filter((t) => t.assigned_to_id === currentUser.user_id)
+            // Employees see only tasks assigned to them
+            ? tasks.filter((t) => String(t.assigned_to_id) === String(userId))
             : [];
 
-    // Apply status filter if one is selected from Dashboard
+    console.log("Filtered tasks by role:", byRole.length);
+
+    // Apply status filter - two options: NOT_COMPLETED (active) and COMPLETE
+    // Backend status values: New, InProgress, Complete
     let filtered = byRole;
     if (statusFilter === "COMPLETE") {
-      filtered = filtered.filter((t) => (t.status || "").toUpperCase().includes("COMPLETE"));
-    } else if (statusFilter === "IN_PROGRESS") {
-      filtered = filtered.filter((t) => (t.status || "").toUpperCase().includes("IN_PROGRESS"));
-    } else if (statusFilter === "OVERDUE") {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
+      // Show only completed tasks
       filtered = filtered.filter((t) => {
-        if (!t.due_date) return false;
-        const due = new Date(t.due_date);
-        return due < today && !isActiveStatus(t.status);
+        const status = (t.status || "").toUpperCase();
+        return status === "COMPLETE" || status.includes("COMPLETE");
       });
-    } else if (statusFilter === null) {
-      // Default: Only return active tasks
+    } else if (statusFilter === "NOT_COMPLETED" || statusFilter === null) {
+      // Show all tasks that are NOT completed (New, InProgress)
       filtered = byRole.filter((t) => isActiveStatus(t.status));
     }
 
@@ -259,7 +315,7 @@ export default function TaskList() {
                   }}
                 >
                   <Box sx={{ width: "6px", height: "6px", borderRadius: "50%", background: "#818cf8" }} />
-                  Filtered: {statusFilter === "COMPLETE" ? "Completed" : statusFilter === "IN_PROGRESS" ? "In Progress" : statusFilter === "OVERDUE" ? "Overdue" : statusFilter}
+                  Filtered: {statusFilter === "COMPLETE" ? "Completed" : statusFilter === "NOT_COMPLETED" ? "Not Completed" : statusFilter}
                   <Button
                     onClick={() => setStatusFilter(null)}
                     sx={{
@@ -302,32 +358,11 @@ export default function TaskList() {
           STATUS FILTERS
         </Typography>
         <Button
-          onClick={() => setStatusFilter(null)}
+          onClick={() => setStatusFilter("NOT_COMPLETED")}
           sx={{
-            background: statusFilter === null ? "rgba(99, 102, 241, 0.25)" : "rgba(99, 102, 241, 0.08)",
-            border: statusFilter === null ? "1px solid rgba(99, 102, 241, 0.6)" : "1px solid rgba(99, 102, 241, 0.2)",
-            color: statusFilter === null ? "#a5b4fc" : "#cbd5e1",
-            textTransform: "none",
-            fontSize: "12px",
-            fontWeight: "600",
-            borderRadius: "8px",
-            padding: "6px 14px",
-            backdropFilter: "blur(10px)",
-            transition: "all 0.2s ease",
-            "&:hover": {
-              background: "rgba(99, 102, 241, 0.2)",
-              borderColor: "rgba(99, 102, 241, 0.5)",
-            },
-          }}
-        >
-          All Tasks
-        </Button>
-        <Button
-          onClick={() => setStatusFilter("IN_PROGRESS")}
-          sx={{
-            background: statusFilter === "IN_PROGRESS" ? "rgba(59, 130, 246, 0.25)" : "rgba(59, 130, 246, 0.08)",
-            border: statusFilter === "IN_PROGRESS" ? "1px solid rgba(59, 130, 246, 0.6)" : "1px solid rgba(59, 130, 246, 0.2)",
-            color: statusFilter === "IN_PROGRESS" ? "#60a5fa" : "#cbd5e1",
+            background: statusFilter === "NOT_COMPLETED" || statusFilter === null ? "rgba(59, 130, 246, 0.25)" : "rgba(59, 130, 246, 0.08)",
+            border: statusFilter === "NOT_COMPLETED" || statusFilter === null ? "1px solid rgba(59, 130, 246, 0.6)" : "1px solid rgba(59, 130, 246, 0.2)",
+            color: statusFilter === "NOT_COMPLETED" || statusFilter === null ? "#60a5fa" : "#cbd5e1",
             textTransform: "none",
             fontSize: "12px",
             fontWeight: "600",
@@ -341,7 +376,7 @@ export default function TaskList() {
             },
           }}
         >
-          In Progress
+          Not Completed
         </Button>
         <Button
           onClick={() => setStatusFilter("COMPLETE")}
@@ -363,27 +398,6 @@ export default function TaskList() {
           }}
         >
           Completed
-        </Button>
-        <Button
-          onClick={() => setStatusFilter("OVERDUE")}
-          sx={{
-            background: statusFilter === "OVERDUE" ? "rgba(239, 68, 68, 0.25)" : "rgba(239, 68, 68, 0.08)",
-            border: statusFilter === "OVERDUE" ? "1px solid rgba(239, 68, 68, 0.6)" : "1px solid rgba(239, 68, 68, 0.2)",
-            color: statusFilter === "OVERDUE" ? "#fca5a5" : "#cbd5e1",
-            textTransform: "none",
-            fontSize: "12px",
-            fontWeight: "600",
-            borderRadius: "8px",
-            padding: "6px 14px",
-            backdropFilter: "blur(10px)",
-            transition: "all 0.2s ease",
-            "&:hover": {
-              background: "rgba(239, 68, 68, 0.2)",
-              borderColor: "rgba(239, 68, 68, 0.5)",
-            },
-          }}
-        >
-          Overdue
         </Button>
       </Box>
       <Box
@@ -557,6 +571,7 @@ export default function TaskList() {
         onClose={() => setSelectedTask(null)}
         currentUser={currentUser}
         onTaskUpdate={handleTaskUpdate}
+        usersMap={usersMap}
       />
 
       {/* Create Task Modal */}

@@ -17,7 +17,7 @@ import {
   MenuItem,
 } from "@mui/material";
 import { toast } from "react-toastify";
-import api from "../../services/api";
+import api, { transformUser } from "../../services/api";
 import { FiEdit2, FiTrash2, FiPlus } from "react-icons/fi";
 
 const GLASS_STYLE = {
@@ -28,6 +28,9 @@ const GLASS_STYLE = {
   color: "white",
 };
 
+// Department enum values from backend
+const DEPARTMENTS = ['SALES', 'DEVELOPMENT', 'TESTING', 'DEVOPS'];
+
 const ROLE_PRIORITY = { ADMIN: 1, MANAGER: 2, EMPLOYEE: 3 };
 
 // ---------- FORM DIALOG COMPONENT ----------
@@ -37,21 +40,30 @@ function EmployeeFormDialog({ open, onClose, onSave, employee, managers }) {
   const [form, setForm] = useState({
     user_id: employee?.user_id ?? null,
     username: employee?.username ?? "",
+    lastName: employee?.lastName ?? "",
+    email: employee?.email ?? "",
+    password: "",
     role: employee?.role ?? "EMPLOYEE",
-    department: employee?.department ?? "General",
+    department: employee?.department ?? "DEVELOPMENT",
     status: employee?.status ?? "ACTIVE",
     manager_id: employee?.manager_id ?? "",
   });
+
+  const [errors, setErrors] = useState({});
 
   useEffect(() => {
     setForm({
       user_id: employee?.user_id ?? null,
       username: employee?.username ?? "",
+      lastName: employee?.lastName ?? "",
+      email: employee?.email ?? "",
+      password: "",
       role: employee?.role ?? "EMPLOYEE",
-      department: employee?.department ?? "General",
+      department: employee?.department ?? "DEVELOPMENT",
       status: employee?.status ?? "ACTIVE",
       manager_id: employee?.manager_id ?? "",
     });
+    setErrors({});
   }, [employee, open]);
 
   const handleChange = (field) => (event) => {
@@ -59,10 +71,29 @@ function EmployeeFormDialog({ open, onClose, onSave, employee, managers }) {
       ...prev,
       [field]: event.target.value,
     }));
+    // Clear error when field is modified
+    if (errors[field]) {
+      setErrors((prev) => ({ ...prev, [field]: "" }));
+    }
+  };
+
+  const validateForm = () => {
+    const newErrors = {};
+    if (!form.username.trim()) newErrors.username = "First name is required";
+    if (!form.lastName.trim()) newErrors.lastName = "Last name is required";
+    if (!form.email.trim()) newErrors.email = "Email is required";
+    // Password only required for new employees, not edits
+    if (!isEditMode && !form.password.trim()) newErrors.password = "Password is required";
+    if (!form.manager_id) newErrors.manager_id = "Manager is required";
+    return newErrors;
   };
 
   const handleSubmit = () => {
-    if (!form.username.trim()) return;
+    const validationErrors = validateForm();
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      return;
+    }
     onSave(form);
   };
 
@@ -102,13 +133,15 @@ function EmployeeFormDialog({ open, onClose, onSave, employee, managers }) {
           mt: 1,
         }}
       >
-        {/* Input fields styled like the task form */}
+        {/* First Name */}
         <TextField
-          label="Username"
+          label="First Name"
           value={form.username}
           onChange={handleChange("username")}
           fullWidth
           variant="outlined"
+          error={!!errors.username}
+          helperText={errors.username}
           InputLabelProps={{
             sx: { color: "#94a3b8" },
           }}
@@ -118,7 +151,7 @@ function EmployeeFormDialog({ open, onClose, onSave, employee, managers }) {
               background: "rgba(255,255,255,0.03)",
               borderRadius: "12px",
               "& fieldset": {
-                borderColor: "rgba(148,163,184,0.25)",
+                borderColor: errors.username ? "#f87171" : "rgba(148,163,184,0.25)",
               },
               "&:hover fieldset": {
                 borderColor: "rgba(148,163,184,0.45)",
@@ -127,6 +160,92 @@ function EmployeeFormDialog({ open, onClose, onSave, employee, managers }) {
           }}
         />
 
+        {/* Last Name */}
+        <TextField
+          label="Last Name"
+          value={form.lastName}
+          onChange={handleChange("lastName")}
+          fullWidth
+          variant="outlined"
+          error={!!errors.lastName}
+          helperText={errors.lastName}
+          InputLabelProps={{
+            sx: { color: "#94a3b8" },
+          }}
+          InputProps={{
+            sx: {
+              color: "white",
+              background: "rgba(255,255,255,0.03)",
+              borderRadius: "12px",
+              "& fieldset": {
+                borderColor: errors.lastName ? "#f87171" : "rgba(148,163,184,0.25)",
+              },
+              "&:hover fieldset": {
+                borderColor: "rgba(148,163,184,0.45)",
+              },
+            },
+          }}
+        />
+
+        {/* Email */}
+        <TextField
+          label="Email"
+          type="email"
+          value={form.email}
+          onChange={handleChange("email")}
+          fullWidth
+          variant="outlined"
+          error={!!errors.email}
+          helperText={errors.email}
+          InputLabelProps={{
+            sx: { color: "#94a3b8" },
+          }}
+          InputProps={{
+            sx: {
+              color: "white",
+              background: "rgba(255,255,255,0.03)",
+              borderRadius: "12px",
+              "& fieldset": {
+                borderColor: errors.email ? "#f87171" : "rgba(148,163,184,0.25)",
+              },
+              "&:hover fieldset": {
+                borderColor: "rgba(148,163,184,0.45)",
+              },
+            },
+          }}
+        />
+
+        {/* Password - Only show for new employee, not edit */}
+        {!isEditMode && (
+          <TextField
+            label="Password"
+            type="password"
+            value={form.password}
+            onChange={handleChange("password")}
+            fullWidth
+            variant="outlined"
+            error={!!errors.password}
+            helperText={errors.password}
+            InputLabelProps={{
+              sx: { color: "#94a3b8" },
+            }}
+            InputProps={{
+              sx: {
+                color: "white",
+                background: "rgba(255,255,255,0.03)",
+                borderRadius: "12px",
+                "& fieldset": {
+                  borderColor: errors.password ? "#f87171" : "rgba(148,163,184,0.25)",
+                },
+                "&:hover fieldset": {
+                  borderColor: "rgba(148,163,184,0.45)",
+                },
+              },
+            }}
+          />
+        )}
+
+        {/* Role */}
         <FormControl fullWidth>
           <InputLabel sx={{ color: "#94a3b8" }}>Role</InputLabel>
           <Select
@@ -147,24 +266,30 @@ function EmployeeFormDialog({ open, onClose, onSave, employee, managers }) {
           </Select>
         </FormControl>
 
-        <TextField
-          label="Department"
-          value={form.department}
-          onChange={handleChange("department")}
-          fullWidth
-          variant="outlined"
-          InputLabelProps={{ sx: { color: "#94a3b8" } }}
-          InputProps={{
-            sx: {
+        {/* Department - Dropdown with enum values */}
+        <FormControl fullWidth>
+          <InputLabel sx={{ color: "#94a3b8" }}>Department</InputLabel>
+          <Select
+            value={form.department}
+            onChange={handleChange("department")}
+            label="Department"
+            sx={{
               color: "white",
               background: "rgba(255,255,255,0.03)",
               borderRadius: "12px",
               "& fieldset": { borderColor: "rgba(148,163,184,0.25)" },
               "&:hover fieldset": { borderColor: "rgba(148,163,184,0.45)" },
-            },
-          }}
-        />
+            }}
+          >
+            {DEPARTMENTS.map((dept) => (
+              <MenuItem key={dept} value={dept}>
+                {dept}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
 
+        {/* Status */}
         <FormControl fullWidth>
           <InputLabel sx={{ color: "#94a3b8" }}>Status</InputLabel>
           <Select
@@ -184,27 +309,32 @@ function EmployeeFormDialog({ open, onClose, onSave, employee, managers }) {
           </Select>
         </FormControl>
 
-        <FormControl fullWidth>
-          <InputLabel sx={{ color: "#94a3b8" }}>Manager</InputLabel>
+        {/* Manager - Required */}
+        <FormControl fullWidth error={!!errors.manager_id}>
+          <InputLabel sx={{ color: errors.manager_id ? "#f87171" : "#94a3b8" }}>Manager *</InputLabel>
           <Select
             value={form.manager_id ?? ""}
             onChange={handleChange("manager_id")}
-            label="Manager"
+            label="Manager *"
             sx={{
               color: "white",
               background: "rgba(255,255,255,0.03)",
               borderRadius: "12px",
-              "& fieldset": { borderColor: "rgba(148,163,184,0.25)" },
+              "& fieldset": { borderColor: errors.manager_id ? "#f87171" : "rgba(148,163,184,0.25)" },
               "&:hover fieldset": { borderColor: "rgba(148,163,184,0.45)" },
             }}
           >
-            <MenuItem value="">None</MenuItem>
             {managers.map((m) => (
               <MenuItem key={m.user_id} value={m.user_id}>
                 {m.username} (ID: {m.user_id})
               </MenuItem>
             ))}
           </Select>
+          {errors.manager_id && (
+            <Typography sx={{ color: "#f87171", fontSize: "0.75rem", mt: 0.5, ml: 1.5 }}>
+              {errors.manager_id}
+            </Typography>
+          )}
         </FormControl>
       </DialogContent>
 
@@ -251,6 +381,7 @@ function EmployeeFormDialog({ open, onClose, onSave, employee, managers }) {
   );
 }
 
+
 // ---------- MAIN COMPONENT ----------
 export default function EmployeesSection() {
   const [currentUser] = useState(() => {
@@ -271,12 +402,18 @@ export default function EmployeesSection() {
 
   const fetchEmployees = async () => {
     try {
-      const response = await api.get("/users");
-      setEmployees(response.data.map(u => ({
-        ...u,
-        department: u.department || "General",
-        status: u.status || "ACTIVE",
-      })));
+      let response;
+
+      // Use the dedicated endpoint for managers to get their team members
+      if (currentUser?.role === "MANAGER" && currentUser?.user_id) {
+        response = await api.get(`/users/manager/${currentUser.user_id}`);
+      } else {
+        // Admin gets all users
+        response = await api.get("/users");
+      }
+
+      // Transform backend data to frontend format
+      setEmployees(response.data.map(transformUser));
     } catch (error) {
       console.error("Error fetching employees:", error);
       // toast.error("Failed to load employees."); // Optional: Don't spam toasts on load
@@ -294,16 +431,17 @@ export default function EmployeesSection() {
     [employees]
   );
 
-  // FILTER based on role
+  // FILTER based on role - already filtered by API for managers
   const visibleEmployees = useMemo(() => {
     if (!currentUser) return [];
 
-    if (isAdmin) return employees;
+    // For managers, the API already returns their team, but filter to show only employees
+    if (isManager) {
+      return employees.filter((e) => e.role === "EMPLOYEE");
+    }
 
-    if (isManager)
-      return employees.filter(
-        (e) => e.manager_id === currentUser.user_id && e.role === "EMPLOYEE"
-      );
+    // Admin sees all
+    if (isAdmin) return employees;
 
     return [];
   }, [employees, currentUser, isAdmin, isManager]);
@@ -352,16 +490,33 @@ export default function EmployeesSection() {
 
   const handleSaveFromDialog = async (form) => {
     try {
+      // Transform form data to backend format
+      const backendPayload = {
+        firstName: form.username || form.firstName,
+        lastName: form.lastName || '',
+        email: form.email || `${form.username?.toLowerCase().replace(/\s+/g, '')}@example.com`,
+        password: form.password_hash || form.password || 'password123',
+        role: form.role,
+        status: form.status === 'ACTIVE',
+        department: form.department,
+        managerId: form.manager_id ? parseInt(form.manager_id) : null,
+      };
+
       if (form.user_id) {
-        // EDIT EXISTING
-        await api.put(`/users/${form.user_id}`, form);
+        // EDIT EXISTING - backend expects UserUpdateDTO (requires email)
+        await api.put(`/users/${form.user_id}`, {
+          firstName: backendPayload.firstName,
+          lastName: backendPayload.lastName,
+          email: backendPayload.email,
+          role: backendPayload.role,
+          status: backendPayload.status,
+          department: backendPayload.department,
+          managerId: backendPayload.managerId,
+        });
         toast.success("Employee updated successfully");
       } else {
-        // ADD NEW
-        await api.post("/users", {
-          ...form,
-          password_hash: "password123", // Default password
-        });
+        // ADD NEW - backend expects UserCreateDTO
+        await api.post("/users", backendPayload);
         toast.success("Employee created successfully");
       }
       fetchEmployees();

@@ -13,7 +13,7 @@ import {
   Typography,
 } from "@mui/material";
 import { toast } from "react-toastify";
-import api from "../../services/api";
+import api, { transformUser, transformTask } from "../../services/api";
 
 const GLASS_STYLE = {
   background: "linear-gradient(145deg, #1e293b 0%, #0f172a 100%)",
@@ -66,22 +66,35 @@ export default function CreateTaskModal({ open, onClose, onTaskCreate }) {
   const [errors, setErrors] = useState({});
   const [employees, setEmployees] = useState([]);
 
+  const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
+
   useEffect(() => {
     if (open) {
       const fetchData = async () => {
         try {
-          // Ideally fetch only employees: api.get('/users?role=EMPLOYEE')
-          const response = await api.get("/users");
-          setEmployees(response.data.filter(u => u.role === "EMPLOYEE"));
+          let response;
+
+          // For managers, use the dedicated endpoint to get their team members
+          if (currentUser?.role === "MANAGER" && currentUser?.user_id) {
+            response = await api.get(`/users/manager/${currentUser.user_id}`);
+            // Managers can only assign to their employees
+            const transformedUsers = response.data.map(transformUser);
+            setEmployees(transformedUsers.filter(u => u.role === "EMPLOYEE"));
+          } else {
+            // Admin gets all users - can assign to employees AND managers
+            response = await api.get("/users");
+            const transformedUsers = response.data.map(transformUser);
+            // Admin can assign to both EMPLOYEE and MANAGER roles
+            setEmployees(transformedUsers.filter(u => u.role === "EMPLOYEE" || u.role === "MANAGER"));
+          }
         } catch (error) {
           console.error("Failed to fetch employees", error);
         }
       };
       fetchData();
     }
-  }, [open]);
+  }, [open, currentUser?.role, currentUser?.user_id]);
 
-  const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -117,24 +130,50 @@ export default function CreateTaskModal({ open, onClose, onTaskCreate }) {
       return;
     }
 
+    // Validate that we have a valid user_id
+    if (!currentUser.user_id) {
+      toast.error("Session error: Please log out and log in again");
+      return;
+    }
+
     try {
-      const newTaskPayload = {
-        title: formData.title,
-        description: formData.description,
-        priority: formData.priority,
-        status: "TO_DO",
-        assigned_to_id: parseInt(formData.assigned_to_id),
-        assigned_by_id: parseInt(currentUser.user_id),
-        due_date: formData.due_date,
+      // Map priority to backend enum value
+      const priorityMap = {
+        'LOW': 0,
+        'MEDIUM': 1,
+        'HIGH': 2,
       };
 
+      // Convert date to proper ISO format (backend expects DateTime)
+      const dueDate = new Date(formData.due_date);
+      dueDate.setHours(23, 59, 59); // Set to end of day
+
+      // Create payload in backend format (PascalCase)
+      const newTaskPayload = {
+        Title: formData.title,
+        Description: formData.description || '',
+        Priority: priorityMap[formData.priority] ?? 1,
+        Status: 0, // New
+        AssignedToUserId: parseInt(formData.assigned_to_id),
+        AssignedByUserId: parseInt(currentUser.user_id),
+        DueDate: dueDate.toISOString(),
+      };
+
+      console.log("Creating task with payload:", newTaskPayload);
+
       const response = await api.post("/tasks", newTaskPayload);
+
+      // Transform response to frontend format before passing to parent
+      const transformedTask = transformTask(response.data);
+
       toast.success("Task created successfully!");
-      onTaskCreate(response.data);
+      onTaskCreate(transformedTask);
       handleClose();
     } catch (error) {
       console.error("Failed to create task", error);
-      toast.error("Failed to create task");
+      // Show more detailed error if available
+      const errorMsg = error.response?.data?.message || error.response?.data?.title || "Failed to create task";
+      toast.error(errorMsg);
     }
   };
 
