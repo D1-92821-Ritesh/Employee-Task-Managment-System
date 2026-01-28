@@ -1,8 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Box } from "@mui/material";
 import Body from "../../components/Body/Body";
 import Sidebar from "../../components/SideBar/SideBar";
 import TaskList from "../../components/Tasks/TaskList";
+import Dashboard from "../../components/Dashboard/Dashboard";
+import EmployeesSection from "../../components/Employees/EmployeesSection";
 
 export default function AdminPage() {
   const [selected, setSelected] = useState("dashboard");
@@ -16,33 +18,32 @@ export default function AdminPage() {
     switch (selected) {
       case "tasks":
         return <TaskList />;
+        
       case "employees":
-        return (
-          <>
-            <h2>Employees</h2>
-            <p>Employee list and management UI will show here.</p>
-          </>
-        );
+        return <EmployeesSection />;
+      
       default:
-        return (
-          <>
-            <h1>Admin Dashboard</h1>
-            <p>Welcome to the Admin Page!</p>
-            <p>Choose an item from the left to view details without navigating away.</p>
-          </>
-        );
+        return <Dashboard />;
     }
   }
+
+  useEffect(() => {
+    const onNavigate = (e) => {
+      const sel = e?.detail?.selected;
+      if (sel) setSelected(sel);
+    };
+    window.addEventListener("navigate", onNavigate);
+    return () => window.removeEventListener("navigate", onNavigate);
+  }, []);
 
   return (
     <Box
       sx={{
         display: "flex",
-        height: "100vh",          // ⭐ MUST for stable dashboard layout
-        padding: "16px",
+        height: "100vh",          
         backgroundColor: "#111827",
         gap: "16px",
-        overflow: "hidden",       // ⭐ page will not scroll
+        overflow: "hidden",       
       }}
     >
       <Sidebar 

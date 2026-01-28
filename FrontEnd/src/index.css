@@ -4,11 +4,55 @@
   padding: 0;
   box-sizing: border-box;
 }
+
 html,
 body {
   height: 100%;
-  overflow: hidden; /* Important: stop page-level scroll */
-  background-color: #111827; /* your dark theme background */
+  overflow: hidden; /* Prevent full-page scroll */
+  background-color: #0f1629; /* smoother dark theme */
+  font-family: 'Inter', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+.scroll-container {
+  overflow-y: auto;
+  overflow-x: hidden;
+  height: 100%;
+  scrollbar-width: none; /* Hide by default (Firefox) */
+}
+
+/* Chrome/Edge/Safari — hide by default */
+.scroll-container::-webkit-scrollbar {
+  width: 0px;
+  transition: width 0.25s ease;
+}
+
+/* Show slim bar on hover */
+.scroll-container:hover::-webkit-scrollbar {
+  width: 8px;
+}
+
+/* Track */
+.scroll-container::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  backdrop-filter: blur(6px);
+}
+
+/* Scroll thumb */
+.scroll-container::-webkit-scrollbar-thumb {
+  background: rgba(129, 140, 248, 0.45);
+  border-radius: 10px;
+  border: 2px solid rgba(15, 23, 42, 0.7);
+  backdrop-filter: blur(6px);
+}
+
+.scroll-container::-webkit-scrollbar-thumb:hover {
+  background: rgba(129, 140, 248, 0.75);
+}
+
+/* invisible corner */
+.scroll-container::-webkit-scrollbar-corner {
+  background: transparent;
 }

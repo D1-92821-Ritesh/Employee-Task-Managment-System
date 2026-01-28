@@ -3,8 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import "./Login.css";
 import PrimaryBtn from "../../components/Button/PrimaryBtn";
-import { USER } from "../../data/mockData";
-
+import api from "../../services/api";
 
 export function Login() {
   const navigate = useNavigate();
@@ -20,36 +19,54 @@ export function Login() {
 
     setLoading(true);
 
-    //---------------------- API call------------------------
-    /*
-    
-    const response = await axios.post('/api/login', {
-      
-    })
+    try {
+      // Step 1: Login to get token
+      const loginResponse = await api.post("/auth/login", {
+        email: username.trim(),
+        password: password,
+      });
 
-    */
-   const user = USER.find((u)=> u.username === username.trim() && u.password_hash === password);
-    if (user) {
-      toast.success("Login successful!");
-      localStorage.setItem("user", JSON.stringify(user));
+      const authData = loginResponse.data;
 
-      if (user.role === "ADMIN") navigate("/admin");
-      else if (user.role === "MANAGER") navigate("/manager");
-      else if(user.role === "EMPLOYEE") navigate("/employee");
+      if (authData && authData.token) {
+        // userId is now returned directly from the backend
+        const userId = authData.userId;
+        console.log("Login - User ID from response:", userId);
 
-      setUsername("");
-      setPassword("");
+        // Store complete user data with user_id
+        const fullUser = {
+          token: authData.token,
+          user_id: userId ? parseInt(userId) : null,
+          firstName: authData.firstName,
+          username: authData.firstName,
+          email: username.trim(),
+          role: authData.role,
+        };
 
-      //navigating to home
-      // navigate("/home");
-    } else {
-      toast.error("Invalid username or password");
+        localStorage.setItem("user", JSON.stringify(fullUser));
+        console.log("Stored user:", fullUser);
+
+        toast.success("Login successful!");
+
+        // Navigate based on role
+        if (authData.role === "ADMIN") navigate("/admin");
+        else if (authData.role === "MANAGER") navigate("/manager");
+        else if (authData.role === "EMPLOYEE") navigate("/employee");
+        else navigate("/employee"); // Default fallback
+
+        setUsername("");
+        setPassword("");
+      }
+    } catch (error) {
+      console.error("Login error:", error);
+      toast.error(error.response?.data?.message || "Invalid username or password");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (
-      <div className="container">
+    <div className="container">
       <div className="bubbleBlue"></div>
       <div className="bubbleOrange"></div>
 
@@ -60,11 +77,11 @@ export function Login() {
         </div>
 
         <div className="formGroup">
-          <label htmlFor="username">Username:</label>
+          <label htmlFor="username">Email:</label>
           <input
             type="text"
             id="username"
-            placeholder="Username"
+            placeholder="Enter your email"
             className="inputField"
             value={username}
             onChange={(e) => setUsername(e.target.value)}

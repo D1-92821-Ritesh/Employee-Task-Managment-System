@@ -41,11 +41,11 @@ const Profile = () => {
             color: "black",
           }}
         >
-          {user.username.charAt(0)}
+          {(user.firstName || user.email || 'U').charAt(0).toUpperCase()}
         </Avatar>
 
         <Box>
-          <Typography fontWeight="bold">{user.username}</Typography>
+          <Typography fontWeight="bold">{user.firstName || user.email}</Typography>
           <Typography fontSize="12px" color="#cccccc">
             {user.role}
           </Typography>
