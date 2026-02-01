@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Create an Axios instance with default config
 const api = axios.create({
-    baseURL: 'http://localhost:8080/api', // API Gateway running on port 8080
+    baseURL: 'http://13.221.87.183:8080/api', // API Gateway running on port 8080
     withCredentials: true, // Required for CORS with credentials
     headers: {
         'Content-Type': 'application/json',
