@@ -11,7 +11,8 @@ export function Login() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     if (!username || !password) {
       toast.error("Username and password are required");
       return;
@@ -76,33 +77,35 @@ export function Login() {
           <h1>Login</h1>
         </div>
 
-        <div className="formGroup">
-          <label htmlFor="username">Email:</label>
-          <input
-            type="text"
-            id="username"
-            placeholder="Enter your email"
-            className="inputField"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-          />
-        </div>
+        <form onSubmit={handleSubmit}>
+          <div className="formGroup">
+            <label htmlFor="username">Email:</label>
+            <input
+              type="text"
+              id="username"
+              placeholder="Enter your email"
+              className="inputField"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+            />
+          </div>
 
-        <div className="formGroup">
-          <label htmlFor="password">Password:</label>
-          <input
-            type="password"
-            id="password"
-            placeholder="Password"
-            className="inputField"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-        </div>
+          <div className="formGroup">
+            <label htmlFor="password">Password:</label>
+            <input
+              type="password"
+              id="password"
+              placeholder="Password"
+              className="inputField"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </div>
 
-        <PrimaryBtn onClick={handleSubmit} disabled={loading} loading={loading}>
-          SUBMIT
-        </PrimaryBtn>
+          <PrimaryBtn type="submit" disabled={loading} loading={loading}>
+            SUBMIT
+          </PrimaryBtn>
+        </form>
       </div>
     </div>
   );

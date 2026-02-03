@@ -581,7 +581,7 @@ export default function Dashboard() {
 
     const todo = relevantTasks.filter((t) => {
       const s = (t.status || "").toLowerCase();
-      return s.includes("todo") || s.includes("pending");
+      return s.includes("todo") || s.includes("pending") || s.includes("new");
     }).length;
 
     const overdue = relevantTasks.filter((t) => {

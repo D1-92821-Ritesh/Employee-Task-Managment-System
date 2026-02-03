@@ -6,10 +6,11 @@ export default function PrimaryBtn({
   loading,
   children,
   className = "submitButton",
+  type = "button",
 }) {
   return (
     <button
-      type="button"
+      type={type}
       className={className}
       onClick={onClick}
       disabled={disabled}

@@ -1,9 +1,9 @@
 import React from "react";
-import { Box, Typography, Chip, Button } from "@mui/material";
+import { Box, Typography, Chip, Select, MenuItem, Button } from "@mui/material";
 import { FiX, FiCheck } from "react-icons/fi";
 import { getPriorityColor, getStatusColor } from "./utils";
 
-export default function TaskHeader({ task, onClose, onMarkComplete }) {
+export default function TaskHeader({ task, onClose, onStatusChange, currentUser }) {
   const isCompleted = task.status.toLowerCase() === 'completed';
 
   return (
@@ -39,32 +39,29 @@ export default function TaskHeader({ task, onClose, onMarkComplete }) {
             color={getPriorityColor(task.priority)}
             sx={{ fontWeight: 'bold', borderRadius: '8px' }}
           />
-          <Chip
-            label={task.status}
-            color={getStatusColor(task.status)}
-            variant="outlined"
-            sx={{ fontWeight: 'bold', borderRadius: '8px', bgcolor: 'rgba(0,0,0,0.2)', color: 'white' }}
-          />
-          {!isCompleted && (
-            <Button
-              variant="contained"
-              startIcon={<FiCheck />}
-              onClick={onMarkComplete}
-              sx={{
-                bgcolor: 'rgba(34, 197, 94, 0.2)',
-                color: '#22c55e',
-                fontWeight: 'bold',
-                borderRadius: '8px',
-                border: '1px solid rgba(34, 197, 94, 0.5)',
-                '&:hover': {
-                  bgcolor: 'rgba(34, 197, 94, 0.3)',
-                  borderColor: '#22c55e'
-                }
-              }}
-            >
-              Mark Complete
-            </Button>
-          )}
+
+          <Select
+            value={task.status}
+            onChange={(e) => onStatusChange(e.target.value)}
+            size="small"
+            disabled={task.status === 'COMPLETED'}
+            sx={{
+              color: 'white',
+              '.MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(255,255,255,0.2)' },
+              '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(255,255,255,0.4)' },
+              '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#818cf8' },
+              '.MuiSvgIcon-root': { color: 'white' },
+              '&.Mui-disabled': { color: '#94a3b8', '-webkit-text-fill-color': '#94a3b8' },
+              fontWeight: 'bold',
+              borderRadius: '8px',
+              bgcolor: 'rgba(0,0,0,0.2)',
+              minWidth: '140px'
+            }}
+          >
+            {task.status === "NEW" && <MenuItem value="NEW">New</MenuItem>}
+            <MenuItem value="IN_PROGRESS">In Progress</MenuItem>
+            {currentUser?.role !== "EMPLOYEE" && <MenuItem value="COMPLETED">Completed</MenuItem>}
+          </Select>
         </Box>
       </Box>
     </Box>

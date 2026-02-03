@@ -124,7 +124,17 @@ export default function TaskDetailModal({ task, open, onClose, currentUser, onTa
         {task && (
           <Box>
             {/* Header Section */}
-            <TaskHeader task={task} onClose={onClose} onMarkComplete={handleMarkComplete} />
+            <TaskHeader
+              task={task}
+              currentUser={currentUser}
+              onClose={onClose}
+              onMarkComplete={handleMarkComplete}
+              onStatusChange={(status) => {
+                if (task && onTaskUpdate) {
+                  onTaskUpdate(task.task_id, status, task);
+                }
+              }}
+            />
             <Divider sx={{ borderColor: 'rgba(255,255,255,0.1)', my: 2 }} />
 
             {/* Task Details Section */}

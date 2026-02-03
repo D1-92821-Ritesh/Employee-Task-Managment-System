@@ -1,6 +1,6 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { Drawer, Box, Typography, List, ListItemButton, ListItemIcon, ListItemText } from "@mui/material";
-import { FiClipboard, FiUsers,} from "react-icons/fi";
+import { FiClipboard, FiUsers, } from "react-icons/fi";
 import { MdDashboard } from "react-icons/md";
 import Profile from './../Profile/Profile';
 
@@ -49,11 +49,9 @@ export default function Sidebar({ role = null, selected = null, onMenuSelect = n
         <Typography variant="h4" fontWeight="bold">
           TaskFlow
         </Typography>
-        <Typography sx={{ marginTop: "5px", fontSize: "14px", color: "#b8b8b8" }}>
-          Developer Edition
-        </Typography>
 
-          {/* MENU LIST */}
+
+        {/* MENU LIST */}
         <List sx={{ marginTop: 2 }}>
           {visibleMenu.map((item) => {
             const isActive = selected ? selected === item.key : location.pathname === item.path;
@@ -89,8 +87,8 @@ export default function Sidebar({ role = null, selected = null, onMenuSelect = n
       </Box>
       <Profile></Profile>
       {/* BOTTOM SECTION */}
-        
-      
+
+
     </Drawer>
   );
 }

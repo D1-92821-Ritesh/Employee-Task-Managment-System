@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Create an Axios instance with default config
 const api = axios.create({
-    baseURL: 'https://api.etmstaskflow.me/api', // API Gateway running on port 8080
+    baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8080/api', // Uses env var, defaults to localhost
     withCredentials: true, // Required for CORS with credentials
     headers: {
         'Content-Type': 'application/json',
@@ -74,10 +74,12 @@ export const transformTask = (task) => {
     // Normalize status - convert enum number to string if needed
     let normalizedStatus = getStatus;
     if (typeof getStatus === 'number') {
-        const statusMap = { 0: 'NEW', 1: 'IN_PROGRESS', 2: 'COMPLETED', 3: 'CANCELLED' };
+        const statusMap = { 0: 'NEW', 1: 'IN_PROGRESS', 2: 'COMPLETED' };
         normalizedStatus = statusMap[getStatus] || 'NEW';
     } else if (typeof getStatus === 'string') {
         normalizedStatus = getStatus.toUpperCase().replace(/\s+/g, '_');
+        if (normalizedStatus === 'INPROGRESS') normalizedStatus = 'IN_PROGRESS';
+        if (normalizedStatus === 'COMPLETE') normalizedStatus = 'COMPLETED';
     }
 
     // Normalize priority - convert enum number to string if needed
@@ -143,7 +145,6 @@ export const transformTaskCreatePayload = (payload) => {
         'IN_PROGRESS': 1,
         'COMPLETED': 2,
         'COMPLETE': 2,
-        'CANCELLED': 3,
     };
 
     const priorityMap = {
@@ -173,7 +174,6 @@ export const transformTaskUpdatePayload = (task, updates) => {
         'IN_PROGRESS': 1,
         'COMPLETED': 2,
         'COMPLETE': 2,
-        'CANCELLED': 3,
     };
 
     const priorityMap = {

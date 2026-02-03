@@ -33,7 +33,6 @@ const getStatusColor = (status) => {
   if (s.includes("complete") || s.includes("done")) return "success";
   if (s.includes("inprogress") || s.includes("progress")) return "info";
   if (s.includes("todo") || s.includes("new") || s.includes("pending")) return "warning";
-  if (s.includes("cancel") || s.includes("closed")) return "default";
   return "default";
 };
 
@@ -138,7 +137,6 @@ export default function TaskList() {
         'IN_PROGRESS': 1,
         'COMPLETED': 2,
         'COMPLETE': 2,
-        'CANCELLED': 3,
       };
 
       const priorityMap = {
@@ -193,8 +191,8 @@ export default function TaskList() {
     const isActiveStatus = (status) => {
       if (!status) return false;
       const s = String(status).toLowerCase();
-      // exclude completed/done/closed/cancelled statuses
-      if (s.includes("complete") || s.includes("done") || s.includes("closed") || s.includes("cancel")) return false;
+      // exclude completed/done/closed statuses
+      if (s.includes("complete") || s.includes("done") || s.includes("closed")) return false;
       return true;
     };
 
@@ -214,14 +212,34 @@ export default function TaskList() {
 
     console.log("Filtered tasks by role:", byRole.length);
 
-    // Apply status filter - two options: NOT_COMPLETED (active) and COMPLETE
-    // Backend status values: New, InProgress, Complete
+    // Apply status filter 
     let filtered = byRole;
     if (statusFilter === "COMPLETE") {
-      // Show only completed tasks
       filtered = filtered.filter((t) => {
         const status = (t.status || "").toUpperCase();
-        return status === "COMPLETE" || status.includes("COMPLETE");
+        return status === "COMPLETED" || status.includes("COMPLETE");
+      });
+    } else if (statusFilter === "NEW") {
+      filtered = filtered.filter((t) => {
+        const status = (t.status || "").toLowerCase();
+        return status.includes("new") || status.includes("todo");
+      });
+    } else if (statusFilter === "IN_PROGRESS") {
+      filtered = filtered.filter((t) => {
+        const status = (t.status || "").toLowerCase();
+        return status.includes("progress");
+      });
+    } else if (statusFilter === "OVERDUE") {
+      filtered = filtered.filter((t) => {
+        if (!t.due_date) return false;
+        // Simple overdue check: due date < now (and not completed)
+        const due = new Date(t.due_date);
+        const now = new Date();
+        now.setHours(0, 0, 0, 0); // compare dates
+        // Also check if not already completed
+        const status = (t.status || "").toLowerCase();
+        const isCompleted = status.includes("complete") || status.includes("done");
+        return due < now && !isCompleted;
       });
     } else if (statusFilter === "NOT_COMPLETED" || statusFilter === null) {
       // Show all tasks that are NOT completed (New, InProgress)
@@ -377,6 +395,69 @@ export default function TaskList() {
           }}
         >
           Not Completed
+        </Button>
+        <Button
+          onClick={() => setStatusFilter("NEW")}
+          sx={{
+            background: statusFilter === "NEW" ? "rgba(245, 158, 11, 0.25)" : "rgba(245, 158, 11, 0.08)",
+            border: statusFilter === "NEW" ? "1px solid rgba(245, 158, 11, 0.6)" : "1px solid rgba(245, 158, 11, 0.2)",
+            color: statusFilter === "NEW" ? "#fbbf24" : "#cbd5e1",
+            textTransform: "none",
+            fontSize: "12px",
+            fontWeight: "600",
+            borderRadius: "8px",
+            padding: "6px 14px",
+            backdropFilter: "blur(10px)",
+            transition: "all 0.2s ease",
+            "&:hover": {
+              background: "rgba(245, 158, 11, 0.2)",
+              borderColor: "rgba(245, 158, 11, 0.5)",
+            },
+          }}
+        >
+          New
+        </Button>
+        <Button
+          onClick={() => setStatusFilter("IN_PROGRESS")}
+          sx={{
+            background: statusFilter === "IN_PROGRESS" ? "rgba(59, 130, 246, 0.25)" : "rgba(59, 130, 246, 0.08)",
+            border: statusFilter === "IN_PROGRESS" ? "1px solid rgba(59, 130, 246, 0.6)" : "1px solid rgba(59, 130, 246, 0.2)",
+            color: statusFilter === "IN_PROGRESS" ? "#60a5fa" : "#cbd5e1",
+            textTransform: "none",
+            fontSize: "12px",
+            fontWeight: "600",
+            borderRadius: "8px",
+            padding: "6px 14px",
+            backdropFilter: "blur(10px)",
+            transition: "all 0.2s ease",
+            "&:hover": {
+              background: "rgba(59, 130, 246, 0.2)",
+              borderColor: "rgba(59, 130, 246, 0.5)",
+            },
+          }}
+        >
+          In Progress
+        </Button>
+        <Button
+          onClick={() => setStatusFilter("OVERDUE")}
+          sx={{
+            background: statusFilter === "OVERDUE" ? "rgba(239, 68, 68, 0.25)" : "rgba(239, 68, 68, 0.08)",
+            border: statusFilter === "OVERDUE" ? "1px solid rgba(239, 68, 68, 0.6)" : "1px solid rgba(239, 68, 68, 0.2)",
+            color: statusFilter === "OVERDUE" ? "#fca5a5" : "#cbd5e1",
+            textTransform: "none",
+            fontSize: "12px",
+            fontWeight: "600",
+            borderRadius: "8px",
+            padding: "6px 14px",
+            backdropFilter: "blur(10px)",
+            transition: "all 0.2s ease",
+            "&:hover": {
+              background: "rgba(239, 68, 68, 0.2)",
+              borderColor: "rgba(239, 68, 68, 0.5)",
+            },
+          }}
+        >
+          Overdue
         </Button>
         <Button
           onClick={() => setStatusFilter("COMPLETE")}
