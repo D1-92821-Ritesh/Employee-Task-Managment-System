@@ -36,7 +36,7 @@ export default function TaskDetails({ task, usersById }) {
             Assigned To
           </Typography>
           <Typography variant="body2" fontWeight="600">
-            {usersById.get(task.assigned_to_id)?.username ?? task.assigned_to_id}
+            {task.assigned_to_name ?? usersById.get(task.assigned_to_id)?.username ?? task.assigned_to_id}
           </Typography>
         </Box>
         <Box>
@@ -44,7 +44,7 @@ export default function TaskDetails({ task, usersById }) {
             Assigned By
           </Typography>
           <Typography variant="body2" fontWeight="600">
-            {usersById.get(task.assigned_by_id)?.username ?? task.assigned_by_id}
+            {task.assigned_by_name ?? usersById.get(task.assigned_by_id)?.username ?? task.assigned_by_id}
           </Typography>
         </Box>
       </Box>

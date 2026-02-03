@@ -449,8 +449,9 @@ export default function TaskList() {
           >
             {visibleTasks.map((t) => (
               (() => {
-                const assignedName = usersMap.get(t.assigned_to_id)?.username ?? t.assigned_to_id;
-                const assignerName = usersMap.get(t.assigned_by_id)?.username ?? t.assigned_by_id;
+                // Use names from backend response, fallback to usersMap, then to ID
+                const assignedName = t.assigned_to_name ?? usersMap.get(t.assigned_to_id)?.username ?? t.assigned_to_id;
+                const assignerName = t.assigned_by_name ?? usersMap.get(t.assigned_by_id)?.username ?? t.assigned_by_id;
                 return (
                   <Box key={t.task_id} sx={{ display: 'flex' }}>
                     {/* --- INDIVIDUAL GLASS CARD --- */}

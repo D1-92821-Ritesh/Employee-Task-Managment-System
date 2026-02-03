@@ -40,8 +40,10 @@ public class UserService {
     public UserResponseDTO createUser(UserCreateDTO createDto) {
         String roleString = createDto.getRole() != null ? createDto.getRole().name() : "EMPLOYEE";
 
+        Long userId;
         try {
-            authFeignClient.registerCredentials(new AuthRegisterRequest(
+            // Auth-service returns the generated user ID
+            userId = authFeignClient.registerCredentials(new AuthRegisterRequest(
                     createDto.getFirstName(),
                     createDto.getEmail(),
                     createDto.getPassword(),
@@ -52,6 +54,7 @@ public class UserService {
 
         try {
             User user = modelMapper.map(createDto, User.class);
+            user.setId(userId); // Use the same ID from auth-service
             user.setStatus(true);
             User savedUser = repository.save(user);
             return modelMapper.map(savedUser, UserResponseDTO.class);
@@ -74,6 +77,14 @@ public class UserService {
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
         user.setStatus(false);
         repository.save(user);
+
+        // Sync status with auth-service to prevent login
+        try {
+            authFeignClient.updateUserStatus(user.getEmail(), false);
+        } catch (Exception e) {
+            // Log but don't fail - user is already deactivated locally
+            System.err.println("Warning: Could not sync status with auth-service: " + e.getMessage());
+        }
     }
 
     public List<UserResponseDTO> getUsersByManager(Long managerId) {

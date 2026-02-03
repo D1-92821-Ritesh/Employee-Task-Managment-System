@@ -65,7 +65,9 @@ export const transformTask = (task) => {
     const getPriority = task.priority ?? task.Priority;
     const getStatus = task.status ?? task.Status;
     const getAssignedTo = task.assignedToUserId ?? task.AssignedToUserId;
+    const getAssignedToName = task.assignedToUserName ?? task.AssignedToUserName;
     const getAssignedBy = task.assignedByUserId ?? task.AssignedByUserId;
+    const getAssignedByName = task.assignedByUserName ?? task.AssignedByUserName;
     const getDueDate = task.dueDate ?? task.DueDate;
     const getComments = task.comments ?? task.Comments ?? [];
 
@@ -94,7 +96,9 @@ export const transformTask = (task) => {
         priority: normalizedPriority,
         status: normalizedStatus,
         assigned_to_id: getAssignedTo,
+        assigned_to_name: getAssignedToName,
         assigned_by_id: getAssignedBy,
+        assigned_by_name: getAssignedByName,
         due_date: getDueDate,
         created_at: getDueDate, // Backend doesn't have created_at, using due_date as fallback
         comments: getComments.map(transformComment),

@@ -29,6 +29,14 @@ public class Program
         // Register RabbitMQ Publisher
         builder.Services.AddSingleton<IMessagePublisher, RabbitMQPublisher>();
 
+        // Register UserServiceClient with HttpClient
+        builder.Services.AddHttpClient<IUserServiceClient, UserServiceClient>(client =>
+        {
+            // Get user-service URL from configuration (supports both local and Docker)
+            var userServiceUrl = builder.Configuration["UserService:BaseUrl"] ?? "http://localhost:8082";
+            client.BaseAddress = new Uri(userServiceUrl);
+        });
+
         // Add Controllers with Enum String Conversion
         // Enforce lowercase URLs
         builder.Services.AddRouting(options => options.LowercaseUrls = true);

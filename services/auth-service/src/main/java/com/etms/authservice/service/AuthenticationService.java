@@ -25,16 +25,16 @@ public class AuthenticationService {
         private final JwtService jwtService;
         private final AuthenticationManager authenticationManager;
 
-        public String register(AuthDto.RegisterRequest request) {
+        public Long register(AuthDto.RegisterRequest request) {
                 var user = Users.builder()
                                 .firstName(request.getFirstName())
                                 .email(request.getEmail())
                                 .passwordHash(passwordEncoder.encode(request.getPassword()))
                                 .role(request.getRole() != null ? request.getRole() : Role.EMPLOYEE)
                                 .build();
-                repository.save(user);
+                Users savedUser = repository.save(user);
 
-                return "User registered successfully";
+                return savedUser.getId();
         }
 
         public AuthDto.AuthResponse authenticate(AuthDto.LoginRequest request) {
@@ -44,6 +44,11 @@ public class AuthenticationService {
                                                 request.getPassword()));
                 var user = repository.findByEmail(request.getEmail())
                                 .orElseThrow(() -> new UsernameNotFoundException("Users not found"));
+
+                // Check if user is inactive
+                if (!user.isStatus()) {
+                        throw new RuntimeException("User account is inactive. Please contact administrator.");
+                }
 
                 var userDetails = new User(
                                 user.getEmail(),
@@ -69,5 +74,12 @@ public class AuthenticationService {
                 var user = repository.findByEmail(email)
                                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
                 repository.delete(user);
+        }
+
+        public void updateUserStatus(String email, boolean status) {
+                var user = repository.findByEmail(email)
+                                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+                user.setStatus(status);
+                repository.save(user);
         }
 }

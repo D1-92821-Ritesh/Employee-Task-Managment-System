@@ -14,3 +14,8 @@ public interface ICommentService
     Task<CommentResponseDto> CreateCommentAsync(int taskId, CreateCommentDto dto);
     Task<CommentResponseDto?> UpdateCommentAsync(int taskId, int commentId, UpdateCommentDto dto);
 }
+
+public interface IUserServiceClient
+{
+    Task<Dictionary<int, string>> GetUserNamesAsync(IEnumerable<int> userIds);
+}

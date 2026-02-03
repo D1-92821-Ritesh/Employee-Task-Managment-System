@@ -10,11 +10,13 @@ public class TaskServiceImpl : ITaskService
 {
     private readonly TaskDbContext _context;
     private readonly IMessagePublisher _messagePublisher;
+    private readonly IUserServiceClient _userServiceClient;
 
-    public TaskServiceImpl(TaskDbContext context, IMessagePublisher messagePublisher)
+    public TaskServiceImpl(TaskDbContext context, IMessagePublisher messagePublisher, IUserServiceClient userServiceClient)
     {
         _context = context;
         _messagePublisher = messagePublisher;
+        _userServiceClient = userServiceClient;
     }
 
     public async Task<IEnumerable<TaskResponseDto>> GetAllTasksAsync()
@@ -23,7 +25,18 @@ public class TaskServiceImpl : ITaskService
             .Include(t => t.Comments)
             .OrderByDescending(t => t.CreatedOn)
             .ToListAsync();
-        return tasks.Select(MapToDto);
+
+        // Get all unique user IDs from tasks
+        var userIds = tasks
+            .SelectMany(t => new[] { t.AssignedToUserId, t.AssignedByUserId })
+            .Distinct()
+            .ToList();
+
+        // Fetch user names from user-service
+        var userNames = await _userServiceClient.GetUserNamesAsync(userIds);
+
+        // Map tasks to DTOs with user names
+        return tasks.Select(t => MapToDto(t, userNames));
     }
 
     public async Task<TaskResponseDto> CreateTaskAsync(CreateTaskDto dto)
@@ -56,7 +69,11 @@ public class TaskServiceImpl : ITaskService
         };
         await _messagePublisher.PublishTaskNotificationAsync(notification);
 
-        return MapToDto(task);
+        // Fetch user names for the response
+        var userIds = new[] { task.AssignedToUserId, task.AssignedByUserId };
+        var userNames = await _userServiceClient.GetUserNamesAsync(userIds);
+
+        return MapToDto(task, userNames);
     }
 
     public async Task<TaskResponseDto?> UpdateTaskAsync(int id, UpdateTaskDto dto)
@@ -73,12 +90,15 @@ public class TaskServiceImpl : ITaskService
         task.UpdatedOn = DateTime.UtcNow;
 
         await _context.SaveChangesAsync();
-        return MapToDto(task);
+
+        // Fetch user names for the response
+        var userIds = new[] { task.AssignedToUserId, task.AssignedByUserId };
+        var userNames = await _userServiceClient.GetUserNamesAsync(userIds);
+
+        return MapToDto(task, userNames);
     }
 
-
-
-    private static TaskResponseDto MapToDto(TaskItem task)
+    private static TaskResponseDto MapToDto(TaskItem task, Dictionary<int, string>? userNames = null)
     {
         return new TaskResponseDto
         {
@@ -88,7 +108,9 @@ public class TaskServiceImpl : ITaskService
             Priority = task.Priority,
             Status = task.Status,
             AssignedToUserId = task.AssignedToUserId,
+            AssignedToUserName = userNames?.GetValueOrDefault(task.AssignedToUserId),
             AssignedByUserId = task.AssignedByUserId,
+            AssignedByUserName = userNames?.GetValueOrDefault(task.AssignedByUserId),
             DueDate = task.DueDate,
             Comments = task.Comments?.Select(c => new CommentResponseDto
             {

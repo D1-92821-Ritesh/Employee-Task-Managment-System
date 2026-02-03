@@ -14,7 +14,7 @@ public class AuthController {
     private final AuthenticationService authService;
 
     @PostMapping("/register")
-    public ResponseEntity<String> register(@RequestBody AuthDto.RegisterRequest request) {
+    public ResponseEntity<Long> register(@RequestBody AuthDto.RegisterRequest request) {
         return ResponseEntity.ok(authService.register(request));
     }
 
@@ -27,5 +27,11 @@ public class AuthController {
     public ResponseEntity<String> deleteUser(@PathVariable String email) {
         authService.deleteUser(email);
         return ResponseEntity.ok("User deleted successfully");
+    }
+
+    @PutMapping("/users/{email}/status")
+    public ResponseEntity<String> updateUserStatus(@PathVariable String email, @RequestParam boolean status) {
+        authService.updateUserStatus(email, status);
+        return ResponseEntity.ok("User status updated successfully");
     }
 }

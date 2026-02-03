@@ -65,7 +65,9 @@ public class TaskResponseDto
     public Priority Priority { get; set; }
     public Models.TaskStatus Status { get; set; }
     public int AssignedToUserId { get; set; }
+    public string? AssignedToUserName { get; set; }
     public int AssignedByUserId { get; set; }
+    public string? AssignedByUserName { get; set; }
     public DateTime DueDate { get; set; }
     public IEnumerable<CommentResponseDto> Comments { get; set; } = new List<CommentResponseDto>();
 }

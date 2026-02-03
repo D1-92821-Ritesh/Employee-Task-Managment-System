@@ -139,6 +139,7 @@ services:
       - Eureka__Client__ServiceUrl=http://discovery-service:8761/eureka/
       - ASPNETCORE_URLS=http://+:5256
       - ASPNETCORE_URLS=http://+:5256
+      - UserService__BaseUrl=http://user-service:8082
     networks:
       - etms-network
     depends_on:
